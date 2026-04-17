@@ -25,7 +25,6 @@ export class Supabase {
   supabaseKey: string = 'sb_publishable_pqmeYWYGduxCvtNhzM5HoA_oP6YdAqj';
   supabase = createClient(this.supabaseUrl, this.supabaseKey);
 
-  // Signals
   user = signal<User | null>(null);
   contacts = signal<
     {
@@ -56,6 +55,8 @@ export class Supabase {
    //#region SERVICE INIT -------------------------------------------------------------------------
   /**
    * Initializes auth state listener.
+   * 
+   * @see: https://supabase.com/docs/reference/javascript/auth-onauthstatechange
    */
   private initAuthListener():void {
     this.supabase.auth.onAuthStateChange((event, session) => {
@@ -68,11 +69,23 @@ export class Supabase {
     });
   }
 
+  /**
+ * Handles initialization - user state.
+ *
+ * Sets the current user from the session and loads all user-related data.
+ * This is triggered by the global auth state listener.
+ */
   initUserIsLoggedIn(session: Session):void {
     this.user.set(session.user);
     this.getContacts();
   }
 
+  /**
+ * Handles initialization - guest state.
+ *
+ * Clears the current user and resets all user-related data.
+ * This is triggered by the global auth state listener.
+ */
   initUserIsGuest():void {
     this.user.set(null);
     this.getContacts();
@@ -127,7 +140,15 @@ export class Supabase {
   async logout(): Promise<void> {
     await this.supabase.auth.signOut();
     this.user.set(null);
-    this.contacts.set([]);
+  }
+
+  /**
+   * Returns true if a user is currently authenticated.
+   * >> we can use !!!: @if (dbService.user()) in html
+   * @returns boolean True if user is logged in, otherwise false (guest user)
+   */
+  isLoggedIn(): boolean {
+    return this.user() !== null;
   }
 
   /**
@@ -156,31 +177,6 @@ export class Supabase {
         return 'Something went wrong. Please try again.';
     }
   }
-  //#endregion
-
-  //#region USER DATA -----------------------------------------------------------------------------
-  /**
-   * Returns true if a user is currently authenticated.
-   * @returns boolean True if user is logged in, otherwise false (guest user)
-   */
-  isLoggedIn(): boolean {
-    return this.user() !== null;
-  }
-
-  /**
-   * Loads the current authenticated user from Supabase.
-   */
-  async loadUserData(): Promise<void> {
-    const { data, error } = await this.supabase.auth.getUser();
-
-    if (error) {
-      // TODO: Error handling
-      return;
-    }
-
-    this.user.set(data.user);
-  }
-
   //#endregion ------------------------------------------------------------------------------------
 
   //#region CONTACT DATA -------------------------------------------------------------------------
