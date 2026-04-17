@@ -1,6 +1,12 @@
-import { Injectable, signal } from '@angular/core';
-import { createClient, User } from '@supabase/supabase-js';
+/**
+ * Supabase Service (Singleton)
+ * (providedIn: 'root')
+ */
 
+import { Injectable, signal } from '@angular/core';
+import { createClient, Session, User } from '@supabase/supabase-js';
+
+// TODO:
 // -> parameter -> welcher tabelle wollen wir laden wir bauchen auf jeden fall wenigstens 2 listen -> contacts und member,
 // benötigte funktionen:
 // -> laden aller einträge
@@ -33,6 +39,46 @@ export class Supabase {
     }[]
   >([]);
 
+  /**
+   * Important:
+   * - The constructor runs only ONCE during app lifetime
+   * - It is triggered when the service is injected for the first time
+   *
+   * Use this for:
+   * - Setting up auth state listeners
+   * - Initial data loading
+   * - Realtime subscriptions
+   */
+  constructor() {
+    this.initAuthListener();
+  }
+
+   //#region SERVICE INIT -------------------------------------------------------------------------
+  /**
+   * Initializes auth state listener.
+   */
+  private initAuthListener():void {
+    this.supabase.auth.onAuthStateChange((event, session) => {
+    
+      if (session?.user) {
+        this.initUserIsLoggedIn(session);
+      } else {
+        this.initUserIsGuest();
+      }
+    });
+  }
+
+  initUserIsLoggedIn(session: Session):void {
+    this.user.set(session.user);
+    this.getContacts();
+  }
+
+  initUserIsGuest():void {
+    this.user.set(null);
+    this.getContacts();
+  }
+  //#endregion
+
   //#region USER AUTH -----------------------------------------------------------------------------
   /**
    * Registers a new user and dont! logs them in.
@@ -49,9 +95,7 @@ export class Supabase {
       return this.errorMessageHandler(error);
     }
 
-    // TODO: info at login form
-    console.log('Check your email to confirm your account');
-    return null;
+    return 'Check your email to confirm your account';
   }
 
   /**
@@ -88,7 +132,7 @@ export class Supabase {
 
   /**
    * Maps Supabase auth errors to user-friendly messages.
-* @: https://supabase.com/docs/guides/auth/debugging/error-codes#auth-error-codes
+   * @: https://supabase.com/docs/guides/auth/debugging/error-codes#auth-error-codes
    */
   private errorMessageHandler(error: any): string {
     if (!error.code) {
@@ -140,7 +184,7 @@ export class Supabase {
   //#endregion ------------------------------------------------------------------------------------
 
   //#region CONTACT DATA -------------------------------------------------------------------------
-  async getContact() {
+  async getContacts() {
     let { data: contacts, error } = await this.supabase.from('contacts').select('*');
     if (!contacts) return;
     this.contacts.set(contacts);

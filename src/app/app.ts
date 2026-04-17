@@ -11,8 +11,4 @@ import { JsonPipe } from '@angular/common';
 })
 export class App {
   dbService: Supabase = inject(Supabase);
-
-  ngOnInit() {
-    this.dbService.getContact();
-  }
 }
