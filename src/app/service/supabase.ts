@@ -5,6 +5,7 @@
 
 import { Injectable, signal } from '@angular/core';
 import { createClient, Session, User } from '@supabase/supabase-js';
+import { Contact } from '../shared/interface/contact';
 
 // TODO:
 // -> parameter -> welcher tabelle wollen wir laden wir bauchen auf jeden fall wenigstens 2 listen -> contacts und member,
@@ -26,17 +27,7 @@ export class Supabase {
   supabase = createClient(this.supabaseUrl, this.supabaseKey);
 
   user = signal<User | null>(null);
-  contacts = signal<
-    {
-      id: number;
-      created_at: string;
-      first_name: string;
-      last_name: string;
-      email: string;
-      phone: string;
-      avatar_color: string;
-    }[]
-  >([]);
+  contacts = signal<Contact[]>([]);
 
   /**
    * Important:
@@ -52,15 +43,14 @@ export class Supabase {
     this.initAuthListener();
   }
 
-   //#region SERVICE INIT -------------------------------------------------------------------------
+  //#region SERVICE INIT -------------------------------------------------------------------------
   /**
    * Initializes auth state listener.
-   * 
+   *
    * @see: https://supabase.com/docs/reference/javascript/auth-onauthstatechange
    */
-  private initAuthListener():void {
+  private initAuthListener(): void {
     this.supabase.auth.onAuthStateChange((event, session) => {
-    
       if (session?.user) {
         this.initUserIsLoggedIn(session);
       } else {
@@ -70,23 +60,23 @@ export class Supabase {
   }
 
   /**
- * Handles initialization - user state.
- *
- * Sets the current user from the session and loads all user-related data.
- * This is triggered by the global auth state listener.
- */
-  initUserIsLoggedIn(session: Session):void {
+   * Handles initialization - user state.
+   *
+   * Sets the current user from the session and loads all user-related data.
+   * This is triggered by the global auth state listener.
+   */
+  initUserIsLoggedIn(session: Session): void {
     this.user.set(session.user);
     this.getContacts();
   }
 
   /**
- * Handles initialization - guest state.
- *
- * Clears the current user and resets all user-related data.
- * This is triggered by the global auth state listener.
- */
-  initUserIsGuest():void {
+   * Handles initialization - guest state.
+   *
+   * Clears the current user and resets all user-related data.
+   * This is triggered by the global auth state listener.
+   */
+  initUserIsGuest(): void {
     this.user.set(null);
     this.getContacts();
   }
@@ -181,9 +171,44 @@ export class Supabase {
 
   //#region CONTACT DATA -------------------------------------------------------------------------
   async getContacts() {
-    let { data: contacts, error } = await this.supabase.from('contacts').select('*');
+    let { data: contacts, error } = (await this.supabase.from('contacts').select('*')) as {
+      data: Contact[] | null;
+      error: null;
+    };
+
     if (!contacts) return;
     this.contacts.set(contacts);
-    console.log(contacts);
+  }
+
+  getContactFromContacts(id: number): Contact | null {
+    const contacts: Contact[] = this.contacts();
+
+    for (let i: number = 0; i < contacts.length; i++) {
+      if (contacts[i].id === id) {
+        return contacts[i];
+      }
+    }
+    return null;
+  }
+
+  async getContactFromDB(id: number): Promise<Contact | null> {
+    const result = await this.supabase.from('contacts').select('*').eq('id', id).single();
+
+    if (result) return result.data as Contact;
+    else return null;
+  }
+
+  // hinzufügen
+  async setContact(contact: Contact) {
+    let { data, error } = await this.supabase.from('contacts').insert([contact]);
+  }
+
+  // bearbeiten
+  async updateConact(id: number, contact: Contact) {
+    let { data, error } = await this.supabase
+      .from('contacts')
+      .update(contact) // hier nur rein was geupdatet wird
+      .eq('id', id)
+      .select();
   }
 }
