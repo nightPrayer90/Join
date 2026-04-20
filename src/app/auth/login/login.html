@@ -1,1 +1,81 @@
-<p>login works!</p>
+<section class="login-page" [class.is-ready]="!showSplash()">
+  <div class="splash-screen">
+    <div class="splash-track">
+      <img src="assets/logos/join-logo-dark.png" alt="Join" class="splash-logo">
+    </div>
+  </div>
+
+  <div class="login-shell">
+    <header class="top-bar">
+      <a class="logo-link" routerLink="/login" aria-label="Join login">
+        <img src="assets/logos/join-logo-dark.png" alt="Join" class="logo">
+      </a>
+
+      <div class="signup-desktop">
+        <span>Not a Join user?</span>
+        <a class="signup-link" routerLink="/signup">Sign up</a>
+      </div>
+    </header>
+
+    <main class="login-content">
+      <article class="login-card">
+        <h1>Log in</h1>
+        <div class="headline-separator"></div>
+
+        <form class="login-form" novalidate (ngSubmit)="onSubmit()">
+          <div class="input-wrapper" [class.has-error]="emailError">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Email"
+              autocomplete="email"
+              [(ngModel)]="email"
+              (input)="onEmailInput()"
+              [attr.aria-invalid]="!!emailError">
+            <img src="assets/icons/mail.png" alt="" aria-hidden="true" class="input-icon">
+          </div>
+          @if (emailError) {
+            <p class="field-error">{{ emailError }}</p>
+          }
+
+          <div class="input-wrapper" [class.has-error]="passwordError">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Password"
+              autocomplete="current-password"
+              [(ngModel)]="password"
+              (input)="onPasswordInput()"
+              [attr.aria-invalid]="!!passwordError">
+            <img src="assets/icons/lock.png" alt="" aria-hidden="true" class="input-icon">
+          </div>
+          @if (passwordError) {
+            <p class="field-error">{{ passwordError }}</p>
+          }
+
+          @if (errorMessage) {
+            <p class="form-error">{{ errorMessage }}</p>
+          }
+
+          <div class="action-buttons">
+            <button type="submit" class="btn-primary" [disabled]="isLoading">
+              {{ isLoading ? 'Logging in...' : 'Log in' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="onGuestLogin()">Guest Log in</button>
+          </div>
+
+          <p class="auth-hint">
+            {{ isLoggedIn() ? 'You are currently logged in.' : 'You are currently using Join as a guest.' }}
+          </p>
+        </form>
+      </article>
+    </main>
+
+    <footer class="login-footer">
+      <a routerLink="/privacy-policy">Privacy Policy</a>
+      <a routerLink="/legal-notice">Legal Notice</a>
+    </footer>
+  </div>
+</section>
