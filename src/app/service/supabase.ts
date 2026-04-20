@@ -176,8 +176,7 @@ export class Supabase {
       error: null;
     };
 
-    if (contacts === null) 
-      return; // TODO: Errorhandling
+    if (contacts === null) return; // TODO: Errorhandling
 
     this.contacts.set(contacts);
   }
@@ -194,43 +193,62 @@ export class Supabase {
   }
 
   async getContactFromDB(id: number): Promise<Contact | null> {
-    const { data: contact, error } = await this.supabase.from('contacts').select('*').eq('id', id).single() as {
+    const { data: contact, error } = (await this.supabase
+      .from('contacts')
+      .select('*')
+      .eq('id', id)
+      .single()) as {
       data: Contact | null;
       error: null;
-    }; ;
+    };
 
-    if (contact === null) 
-    return null; // TODO: ErrorHandling
+    if (contact === null) return null; // TODO: ErrorHandling
 
     return contact as Contact;
-
   }
 
   // hinzufügen
   async setContact(contactInsert: ContactInsert): Promise<void> {
-    const { data: contactInsertDB, error } = await this.supabase.from('contacts')
-    .insert(contactInsert)
-    .select() 
-    .single() as {
+    const { data: contactInsertDB, error } = (await this.supabase
+      .from('contacts')
+      .insert(contactInsert)
+      .select()
+      .single()) as {
       data: Contact | null;
       error: null;
-    }; 
+    };
 
     if (contactInsertDB === null) {
       return; // TODO: ErrorHandling
     }
 
-    const tmpContacsCopy = this.contacts().slice(); 
+    const tmpContacsCopy = this.contacts().slice();
     tmpContacsCopy.push(contactInsertDB);
     this.contacts.set(tmpContacsCopy);
   }
 
   // bearbeiten
-  async updateConact(id: number, contact: ContactInsert) {
-    let { data, error } = await this.supabase
+  async updateContact(id: number, contactInsert: ContactInsert): Promise<void> {
+    const { data: updatedContact, error } = (await this.supabase
       .from('contacts')
-      .update(contact)
+      .update(contactInsert)
       .eq('id', id)
-      .select();
+      .select()
+      .single()) as { data: Contact | null; error: any;};
+
+    if (updatedContact === null) {
+      return; // TODO: ErrorHandling
+    }
+
+    const tmpContacsCopy = this.contacts().slice();
+
+    for (let i = 0; i < tmpContacsCopy.length; i++) {
+      if (tmpContacsCopy[i].id === id) {
+        tmpContacsCopy[i] = updatedContact;
+        break;
+      }
+    }
+
+    this.contacts.set(tmpContacsCopy);
   }
 }

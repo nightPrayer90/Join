@@ -16,11 +16,8 @@ type GroupedContacts = {
 export class Contacts {
   private dbService = inject(Supabase);
 
-  private fullNameFrom(contact: Contact): string {
-    return contact.full_name.trim();
-  }
-
   contactsByLetter = computed<GroupedContacts[]>(() => {
+    
     const sortedContacts = [...this.dbService.contacts()].sort((a, b) => {
       const fullNameA = this.fullNameFrom(a);
       const fullNameB = this.fullNameFrom(b);
@@ -43,12 +40,9 @@ export class Contacts {
     return Array.from(grouped.entries()).map(([letter, contacts]) => ({ letter, contacts }));
   });
 
-  constructor() {
-    void this.dbService.getContacts();
-  }
 
-  getFullName(contact: Contact): string {
-    return this.fullNameFrom(contact);
+  fullNameFrom(contact: Contact): string {
+    return contact.full_name.trim();
   }
 
   getInitials(contact: Contact): string {
