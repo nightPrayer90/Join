@@ -5,7 +5,7 @@
 
 import { Injectable, signal } from '@angular/core';
 import { createClient, Session, User } from '@supabase/supabase-js';
-import { Contact } from '../shared/interface/contact';
+import { Contact, ContactInsert } from '../shared/interface/contact-interface';
 
 // TODO:
 // -> parameter -> welcher tabelle wollen wir laden wir bauchen auf jeden fall wenigstens 2 listen -> contacts und member,
@@ -171,12 +171,14 @@ export class Supabase {
 
   //#region CONTACT DATA -------------------------------------------------------------------------
   async getContacts() {
-    let { data: contacts, error } = (await this.supabase.from('contacts').select('*')) as {
+    const { data: contacts, error } = (await this.supabase.from('contacts').select('*')) as {
       data: Contact[] | null;
       error: null;
     };
 
-    if (!contacts) return;
+    if (contacts === null) 
+      return; // TODO: Errorhandling
+
     this.contacts.set(contacts);
   }
 
@@ -192,22 +194,42 @@ export class Supabase {
   }
 
   async getContactFromDB(id: number): Promise<Contact | null> {
-    const result = await this.supabase.from('contacts').select('*').eq('id', id).single();
+    const { data: contact, error } = await this.supabase.from('contacts').select('*').eq('id', id).single() as {
+      data: Contact | null;
+      error: null;
+    }; ;
 
-    if (result) return result.data as Contact;
-    else return null;
+    if (contact === null) 
+    return null; // TODO: ErrorHandling
+
+    return contact as Contact;
+
   }
 
   // hinzufügen
-  async setContact(contact: Contact) {
-    let { data, error } = await this.supabase.from('contacts').insert([contact]);
+  async setContact(contactInsert: ContactInsert): Promise<void> {
+    const { data: contactInsertDB, error } = await this.supabase.from('contacts')
+    .insert(contactInsert)
+    .select() 
+    .single() as {
+      data: Contact | null;
+      error: null;
+    }; 
+
+    if (contactInsertDB === null) {
+      return; // TODO: ErrorHandling
+    }
+
+    const tmpContacsCopy = this.contacts().slice(); 
+    tmpContacsCopy.push(contactInsertDB);
+    this.contacts.set(tmpContacsCopy);
   }
 
   // bearbeiten
-  async updateConact(id: number, contact: Contact) {
+  async updateConact(id: number, contact: ContactInsert) {
     let { data, error } = await this.supabase
       .from('contacts')
-      .update(contact) // hier nur rein was geupdatet wird
+      .update(contact)
       .eq('id', id)
       .select();
   }
