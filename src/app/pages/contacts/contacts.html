@@ -18,12 +18,12 @@
                 <div class="group-divider"></div>
 
                 @for (contact of group.contacts; track contact.id) {
-                <article class="contact-item">
+                <article class="contact-item" (click)="openContactDetails(contact)">
                     <div class="avatar" [style.background-color]="contact.avatar_color || '#2A3647'">
-                        {{ getInitials(contact) }}
+                        {{ dbService.getInitials(contact) }}
                     </div>
                     <div class="contact-content">
-                        <p class="contact-name">{{ fullNameFrom(contact) }}</p>
+                        <p class="contact-name">{{ contact.full_name }}</p>
                         <a [href]="'mailto:' + contact.email" class="contact-email">{{ contact.email }}</a>
                     </div>
                 </article>

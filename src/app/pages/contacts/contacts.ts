@@ -14,7 +14,7 @@ type GroupedContacts = {
   styleUrl: './contacts.scss',
 })
 export class Contacts {
-  private dbService = inject(Supabase);
+  dbService = inject(Supabase);
 
   contactsByLetter = computed<GroupedContacts[]>(() => {
     
@@ -26,6 +26,7 @@ export class Contacts {
 
     const grouped = new Map<string, Contact[]>();
 
+    
     for (const contact of sortedContacts) {
       const fullName = this.fullNameFrom(contact);
       const firstLetter = (fullName.charAt(0) || '#').toUpperCase();
@@ -45,10 +46,15 @@ export class Contacts {
     return contact.full_name.trim();
   }
 
-  getInitials(contact: Contact): string {
-    const parts = this.fullNameFrom(contact).split(/\s+/).filter(Boolean);
-    const first = parts[0]?.charAt(0) || '';
-    const second = parts[1]?.charAt(0) || '';
-    return `${first}${second || first}`.toUpperCase();
+  // -> die kette hier
+  //    -> contacts aus der db wird sortiert und in ein compueted signal geparkt
+  //    -> dieses signal wird in der html verarbeitet und läuft zurück hier in die funktion. 
+  //    -> Frage, funktioniert dann die live aktuallisierung noch? das müssen wir noch herausfinden. evl - sonst über die ID direkt den Eintrag aus der Datenbank ziehen. 
+  openContactDetails(contact: Contact) {
+    // contact.full_name;
+    // contact.email;
+    // contact.phone;
+
+    console.log(contact);
   }
 }

@@ -251,4 +251,11 @@ export class Supabase {
 
     this.contacts.set(tmpContacsCopy);
   }
+
+  getInitials(contact: Contact): string {
+    const parts = contact.full_name.trim().split(/\s+/).filter(Boolean);
+    const first = parts[0]?.charAt(0) || '';
+    const second = parts[1]?.charAt(0) || '';
+    return `${first}${second || first}`.toUpperCase();
+  }
 }
