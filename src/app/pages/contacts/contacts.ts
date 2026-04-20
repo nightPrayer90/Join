@@ -18,7 +18,7 @@ export class Contacts {
 
   contactsByLetter = computed<GroupedContacts[]>(() => {
     
-    const sortedContacts = [...this.dbService.contacts()]
+    const sortedContacts = [...this.dbService.contactsList()]
     .map(c => new ContactsModel(c))
     .sort((a, b) => {
       const fullNameA = this.fullNameFrom(a);
@@ -48,15 +48,12 @@ export class Contacts {
     return contact.full_name.trim();
   }
 
-  // -> die kette hier
-  //    -> contacts aus der db wird sortiert und in ein compueted signal geparkt
-  //    -> dieses signal wird in der html verarbeitet und läuft zurück hier in die funktion. 
-  //    -> Frage, funktioniert dann die live aktuallisierung noch? das müssen wir noch herausfinden. evl - sonst über die ID direkt den Eintrag aus der Datenbank ziehen. 
-  openContactDetails(contact: ContactsModel) {
-    // contact.full_name;
-    // contact.email;
-    // contact.phone;
+  // Schnittstelle für die Detail Ansicht
+  openContactDetails(id: number) {
+    // Aktualisiert das Datenbank Signal 
+    this.dbService.getContactDetails(id);
 
-    console.log(contact);
+    // Datanbanksignal für die Weiterververarbeitung -> ist Datenbank sync
+    console.log(this.dbService.contactDetails());
   }
 }

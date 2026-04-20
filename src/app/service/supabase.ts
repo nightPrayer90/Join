@@ -3,21 +3,10 @@
  * (providedIn: 'root')
  */
 
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { createClient, RealtimeChannel, Session, User } from '@supabase/supabase-js';
 import { Contact } from '../shared/interface/contact-interface';
 import { ContactsModel } from '../shared/models/contacts-model';
-
-// TODO:
-// -> parameter -> welcher tabelle wollen wir laden wir bauchen auf jeden fall wenigstens 2 listen -> contacts und member,
-// benötigte funktionen:
-// -> laden aller einträge
-// -> laden eines bestimmten eintrags ->getContact
-// -> anlegen eines neuen eintrages -> setContact
-// -> updaten eines bestimmten eintrages ->Update contact -> wird alles beschrieben im video 09 weitere CRUD Operationen
-// -> löschen eines bestimmten eintrages
-
-// -> subscripe
 
 @Injectable({
   providedIn: 'root',
@@ -26,29 +15,30 @@ export class Supabase {
   supabaseUrl: string = 'https://guvsrmtryoljhhdpanat.supabase.co';
   supabaseKey: string = 'sb_publishable_pqmeYWYGduxCvtNhzM5HoA_oP6YdAqj';
   supabase = createClient(this.supabaseUrl, this.supabaseKey);
+  channels: RealtimeChannel | undefined;
 
   user = signal<User | null>(null);
-  contacts = signal<ContactsModel[]>([]);
-  contact = signal<Contact>({
-    "id": -1,
-    "full_name": "n/a",
-    "email": "n/a",
-    "phone": "n/a",
-    "avatar_color":"#FFFFFF",
-    "isUser": false
-  }); // TODO: IS not in use
+  contactsList = signal<ContactsModel[]>([]);
 
-  channels: RealtimeChannel | undefined;
+  contactDetailsId = signal<number | null>(null);
+  // Signal to Show Details bei ID
+  contactDetails = computed<ContactsModel | null>(() => {
+    const id = this.contactDetailsId();
+    if (!id) return null;
+
+    const list = this.contactsList();
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === id) {
+        return list[i];
+      }
+    }
+    return null;
+  });
 
   /**
    * Important:
    * - The constructor runs only ONCE during app lifetime
    * - It is triggered when the service is injected for the first time
-   *
-   * Use this for:
-   * - Setting up auth state listeners
-   * - Initial data loading
-   * - Realtime subscriptions
    */
   constructor() {
     this.initAuthListener();
@@ -75,19 +65,6 @@ export class Supabase {
     });
   }
 
-  private subscripeChannel() {
-    this.channels = this.supabase
-      .channel('custom-all-channel')
-      .on(
-        'postgres_changes', 
-        { event: '*', schema: 'public', table: 'contacts' }, 
-        (payload) => {
-        /*  let tempContact = new Contact */
-        console.log('Change received!', payload.new);
-      })
-      .subscribe();
-  }
-
   /**
    * Handles initialization - user state.
    *
@@ -108,6 +85,38 @@ export class Supabase {
   private initUserIsGuest(): void {
     this.user.set(null);
     this.getContacts();
+  }
+
+  private subscripeChannel() {
+    this.channels = this.supabase
+      .channel('custom-all-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, (payload) => {
+        switch (payload.eventType) {
+          case 'INSERT':
+            this.contactsList.update((list) => [
+              ...list,
+              new ContactsModel(payload.new as Contact),
+            ]);
+            break;
+
+          case 'UPDATE':
+            this.contactsList.update((list) =>
+              list.map((c) =>
+                c.id === (payload.new as Contact).id
+                  ? new ContactsModel(payload.new as Contact)
+                  : c,
+              ),
+            );
+            break;
+
+          case 'DELETE':
+            this.contactsList.update((list) =>
+              list.filter((c) => c.id !== (payload.old as Contact).id),
+            );
+            break;
+        }
+      })
+      .subscribe();
   }
   //#endregion
 
@@ -200,6 +209,7 @@ export class Supabase {
 
   //#region CONTACT DATA -------------------------------------------------------------------------
   async getContacts() {
+    const contactModels: ContactsModel[] = [];
     const { data: contacts, error } = (await this.supabase.from('contacts').select('*')) as {
       data: ContactsModel[] | null;
       error: null;
@@ -207,61 +217,38 @@ export class Supabase {
 
     if (contacts === null) return; // TODO: Errorhandling
 
-    this.contacts.set((contacts ?? []) as ContactsModel[]);
-
-    console.log(this.contacts);
+    for (let i = 0; i < contacts.length; i++) {
+      contactModels.push(new ContactsModel(contacts[i]));
+    }
+    this.contactsList.set(contactModels);
   }
 
-  async getContactFromDB(id: number): Promise<Contact | null> {
-    const { data: contact, error } = (await this.supabase
-      .from('contacts')
-      .select('*')
-      .eq('id', id)
-      .single()) as {
-      data: Contact | null;
-      error: null;
-    };
-
-    if (contact === null) return null; // TODO: ErrorHandling
-
-    return contact as Contact;
+  // ändern des Detail Signals - Datenbank Sync
+  getContactDetails(id: number) {
+    this.contactDetailsId.set(id);
   }
 
   // hinzufügen
   async addContact(contact: ContactsModel): Promise<void> {
     const contact_data = contact.getCleanAddJson();
-    const { data, error } = await this.supabase
-      .from('contacts')
-      .insert(contact_data)
-      .select()
-    
-      this.contacts.update(list => [...list, contact]);
+    const { data: addedContact, error } = await this.supabase.from('contacts').insert(contact_data);
+
+    if (error) {
+      return; //TODO: errorHandling
+    }
   }
 
-  // bearbeiten
-  // async updateContact(id: number, contactInsert: ContactInsert): Promise<void> {
-  //   const { data: updatedContact, error } = (await this.supabase
-  //     .from('contacts')
-  //     .update(contactInsert)
-  //     .eq('id', id)
-  //     .select()
-  //     .single()) as { data: Contact | null; error: any };
+  //bearbeiten
+  async updateContact(id: number, contact: ContactsModel): Promise<void> {
+    const { error } = await this.supabase
+      .from('contacts')
+      .update(contact.getCleanAddJson())
+      .eq('id', id);
 
-  //   if (updatedContact === null) {
-  //     return; // TODO: ErrorHandling
-  //   }
-
-  //   const tmpContacsCopy = this.contacts().slice();
-
-  //   for (let i = 0; i < tmpContacsCopy.length; i++) {
-  //     if (tmpContacsCopy[i].id === id) {
-  //       tmpContacsCopy[i] = updatedContact;
-  //       break;
-  //     }
-  //   }
-
-  //   this.contacts.set(tmpContacsCopy);
-  // }
+    if (error) {
+      return; // TODO: Errorhandling
+    }
+  }
 
   // async deleteContact(id: number): Promise<void> {
   //   const { data, error } = await this.supabase.from('contacts').delete().eq('id', id);

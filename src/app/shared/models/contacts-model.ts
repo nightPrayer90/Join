@@ -10,21 +10,29 @@ export class ContactsModel implements Contact {
 
   constructor(data: Partial<Contact> = {}) {
     this.id = data.id ?? -1;
-    this.full_name = data.full_name ?? "n/a";
-    this.email = data.email ?? "n/a";
-    this.phone = data.phone ?? "n/a";
-    this.avatar_color = data.avatar_color ?? "#FFFFFF";
+    this.full_name = data.full_name ?? 'n/a';
+    this.email = data.email ?? 'n/a';
+    this.phone = data.phone ?? 'n/a';
+    this.avatar_color = data.avatar_color ?? '#FFFFFF';
     this.isUser = data.isUser ?? false;
   }
 
   getCleanAddJson() {
     return {
-        full_name: this.full_name,
-        email: this.email,
-        phone: this.phone,
-        avatar_color: this.avatar_color,
-        isUser: this.isUser
-    }
+      full_name: this.full_name,
+      email: this.email,
+      phone: this.phone,
+      avatar_color: this.avatar_color,
+      isUser: this.isUser,
+    };
+  }
+
+  getCleanUpdateJson() {
+    return {
+      full_name: this.full_name,
+      email: this.email,
+      phone: this.phone,
+    };
   }
 
   getInitials(): string {
