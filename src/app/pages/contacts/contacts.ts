@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { Supabase } from '../../service/supabase';
-import { Contact } from '../../shared/interface/contact';
+import { Contact } from '../../shared/interface/contact-interface';
 
 type GroupedContacts = {
   letter: string;
