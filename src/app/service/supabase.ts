@@ -1,8 +1,3 @@
-/**
- * Supabase Service (Singleton)
- * (providedIn: 'root')
- */
-
 import { Injectable, signal, computed } from '@angular/core';
 import { createClient, RealtimeChannel, Session, User } from '@supabase/supabase-js';
 import { Contact } from '../shared/interface/contact-interface';
@@ -15,13 +10,30 @@ export class Supabase {
   supabaseUrl: string = 'https://guvsrmtryoljhhdpanat.supabase.co';
   supabaseKey: string = 'sb_publishable_pqmeYWYGduxCvtNhzM5HoA_oP6YdAqj';
   supabase = createClient(this.supabaseUrl, this.supabaseKey);
-  channels: RealtimeChannel | undefined;
+  channelInsert: RealtimeChannel | undefined;
+  channelUpdate: RealtimeChannel | undefined;
+  channelDelete: RealtimeChannel | undefined;
 
+  //#region SIGNALS -------------------------------------------------------------------------------
+  /**
+   * Holds the currently authenticated user from the database.
+   */
   user = signal<User | null>(null);
+
+  /**
+   * Reactive list of all contacts loaded from the "contacts" database table.
+   */
   contactsList = signal<ContactsModel[]>([]);
 
+  /**
+   * Stores the id of the contact used to control the detail view selection.
+   */
   contactDetailsId = signal<number | null>(null);
-  // Signal to Show Details bei ID
+
+  /**
+   * Computed signal that returns the selected contact based on contactDetailsId.
+   * Resolves the contact from contactsList or null if not found.
+   */
   contactDetails = computed<ContactsModel | null>(() => {
     const id = this.contactDetailsId();
     if (!id) return null;
@@ -34,6 +46,7 @@ export class Supabase {
     }
     return null;
   });
+  //#endregion
 
   /**
    * Important:
@@ -42,17 +55,21 @@ export class Supabase {
    */
   constructor() {
     this.initAuthListener();
-    this.subscripeChannel();
+    this.initAuthListener();
+    this.subscribeInsert();
+    this.subscribeUpdate();
+    this.subscribeDelete();
   }
 
   ngOnDestroy() {
-    if (this.channels) this.supabase.removeChannel(this.channels);
+    if (this.channelInsert) this.supabase.removeChannel(this.channelInsert);
+    if (this.channelUpdate) this.supabase.removeChannel(this.channelUpdate);
+    if (this.channelDelete) this.supabase.removeChannel(this.channelDelete);
   }
 
   //#region SERVICE INIT -------------------------------------------------------------------------
   /**
    * Initializes auth state listener.
-   *
    * @see: https://supabase.com/docs/reference/javascript/auth-onauthstatechange
    */
   private initAuthListener(): void {
@@ -67,9 +84,6 @@ export class Supabase {
 
   /**
    * Handles initialization - user state.
-   *
-   * Sets the current user from the session and loads all user-related data.
-   * This is triggered by the global auth state listener.
    */
   private initUserIsLoggedIn(session: Session): void {
     this.user.set(session.user);
@@ -78,44 +92,69 @@ export class Supabase {
 
   /**
    * Handles initialization - guest state.
-   *
-   * Clears the current user and resets all user-related data.
-   * This is triggered by the global auth state listener.
    */
   private initUserIsGuest(): void {
     this.user.set(null);
     this.getContacts();
   }
 
-  private subscripeChannel() {
-    this.channels = this.supabase
-      .channel('custom-all-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, (payload) => {
-        switch (payload.eventType) {
-          case 'INSERT':
-            this.contactsList.update((list) => [
-              ...list,
-              new ContactsModel(payload.new as Contact),
-            ]);
-            break;
+  /**
+   * Subscribes to UPDATE events - Updates the local contacts list by replacing the modified contact.
+   */
+  private subscribeInsert() {
+    this.channelInsert = this.supabase
+      .channel('contacts-insert')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'contacts' },
+        (payload) => {
+          this.contactsList.update((list) => [...list, new ContactsModel(payload.new as Contact)]);
+        },
+      )
+      .subscribe();
+  }
 
-          case 'UPDATE':
-            this.contactsList.update((list) =>
-              list.map((c) =>
-                c.id === (payload.new as Contact).id
-                  ? new ContactsModel(payload.new as Contact)
-                  : c,
-              ),
-            );
-            break;
+  /**
+   * Subscribes to DELETE events - Removes the deleted contact from the local contacts list.
+   */
+  private subscribeUpdate() {
+    this.channelUpdate = this.supabase
+      .channel('contacts-update')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'contacts' },
+        (payload) => {
+          this.contactsList.update((list) => {
+            const updated = payload.new as Contact;
+            const result: ContactsModel[] = [];
+            for (let i = 0; i < list.length; i++) {
+              if (list[i].id === updated.id) {
+                result.push(new ContactsModel(updated));
+              } else {
+                result.push(list[i]);
+              }
+            }
+            return result;
+          });
+        },
+      )
+      .subscribe();
+  }
 
-          case 'DELETE':
-            this.contactsList.update((list) =>
-              list.filter((c) => c.id !== (payload.old as Contact).id),
-            );
-            break;
-        }
-      })
+  /**
+   * Subscribes to DELETE events - Removes the deleted contact from the local contacts list using its id.
+   */
+  private subscribeDelete() {
+    this.channelDelete = this.supabase
+      .channel('contacts-delete')
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'contacts' },
+        (payload) => {
+          const deleteId = payload.old['id'];
+          this.contactsList.update((list) => list.filter((contact) => contact.id !== deleteId));
+        },
+      )
       .subscribe();
   }
   //#endregion
@@ -132,10 +171,7 @@ export class Supabase {
       password,
     });
 
-    if (error) {
-      return this.errorMessageHandler(error);
-    }
-
+    if (error) return this.errorMessageHandler(error);
     return 'Check your email to confirm your account';
   }
 
@@ -151,16 +187,10 @@ export class Supabase {
       password,
     });
 
-    if (error) {
-      return this.errorMessageHandler(error);
-    }
-
+    if (error) return this.errorMessageHandler(error);
     this.user.set(data.user);
     return null;
   }
-  // /** -> Norman use
-  //  * const error = await this.dbService.login(email, password);
-  // if (error) {  this.errorMessage = error; }
 
   /**
    * Logs out the current user and clears all local state.
@@ -184,10 +214,7 @@ export class Supabase {
    * @: https://supabase.com/docs/guides/auth/debugging/error-codes#auth-error-codes
    */
   private errorMessageHandler(error: any): string {
-    if (!error.code) {
-      return 'Something went wrong.';
-    }
-
+    if (!error.code) return 'Something went wrong.';
     switch (error.code) {
       case 'email_not_confirmed':
         return 'Please confirm your email address.';
@@ -208,6 +235,9 @@ export class Supabase {
   //#endregion ------------------------------------------------------------------------------------
 
   //#region CONTACT DATA -------------------------------------------------------------------------
+  /**
+   * Fetches all contacts from the database and updates the local contacts list.
+   */
   async getContacts() {
     const contactModels: ContactsModel[] = [];
     const { data: contacts, error } = (await this.supabase.from('contacts').select('*')) as {
@@ -215,42 +245,56 @@ export class Supabase {
       error: null;
     };
 
-    if (contacts === null) return; // TODO: Errorhandling
-
+    if (error || contacts === null) {
+      console.log('Contacts could not be loaded!');
+      return; // TODO: Errorhandling
+    }
     for (let i = 0; i < contacts.length; i++) {
       contactModels.push(new ContactsModel(contacts[i]));
     }
     this.contactsList.set(contactModels);
   }
 
-  // ändern des Detail Signals - Datenbank Sync
+  /**
+   * Sets the current contact id for the detail view.
+   * Triggers reactive updates based on the selected contact.
+   * @param id - The id of the contact to display
+   */
   getContactDetails(id: number) {
     this.contactDetailsId.set(id);
   }
 
-  // hinzufügen
+  /**
+   * Inserts a new contact into the database.
+   * @param contact - The contact model to be added
+   */
   async addContact(contact: ContactsModel): Promise<void> {
     const contact_data = contact.getCleanAddJson();
-    const { data: addedContact, error } = await this.supabase.from('contacts').insert(contact_data);
+    const { data, error } = await this.supabase.from('contacts').insert(contact_data);
 
-    if (error) {
-      return; //TODO: errorHandling
-    }
+    if (error) console.log('The contact could not be added!'); //TODO: errorHandling
   }
 
-  //bearbeiten
+  /**
+   * Updates an existing contact in the database.
+   * @param id - The id of the contact to update
+   * @param contact - The updated contact data
+   */
   async updateContact(id: number, contact: ContactsModel): Promise<void> {
-    const { error } = await this.supabase
-      .from('contacts')
-      .update(contact.getCleanAddJson())
-      .eq('id', id);
+    const contact_data = contact.getCleanUpdateJson();
+    const { error } = await this.supabase.from('contacts').update(contact_data).eq('id', id);
 
-    if (error) {
-      return; // TODO: Errorhandling
-    }
+    if (error) console.log('The contact could not be updated!'); //TODO: errorHandling
   }
 
-  // async deleteContact(id: number): Promise<void> {
-  //   const { data, error } = await this.supabase.from('contacts').delete().eq('id', id);
-  // }
+  /**
+   * Deletes a contact from the database by id.
+   * @param id - The id of the contact to delete
+   */
+  async deleteContact(id: number): Promise<void> {
+    const { data, error } = await this.supabase.from('contacts').delete().eq('id', id);
+
+    if (error) console.log('The contact could not be deleted'); //TODO: errorHandling
+  }
+  //#endregion
 }
