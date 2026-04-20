@@ -1,2 +1,36 @@
-<p>contacts works!</p>
-<h1> Hallo Welt!</h1>
+<section class="contacts-page">
+  <aside class="contacts-list-panel" aria-label="Contact list">
+    <button type="button" class="add-contact-btn">
+      <span>Add new contact</span>
+      <span class="add-contact-icon" aria-hidden="true">
+        <img src="assets/icons/person.png" alt="">
+        <span class="plus-sign">+</span>
+      </span>
+    </button>
+
+    <div class="contacts-scroll">
+      @if (contactsByLetter().length === 0) {
+        <p class="no-contacts">No contacts available.</p>
+      } @else {
+        @for (group of contactsByLetter(); track group.letter) {
+          <section class="letter-group" [attr.aria-label]="'Contacts starting with ' + group.letter">
+            <h2 class="letter-heading">{{ group.letter }}</h2>
+            <div class="group-divider"></div>
+
+            @for (contact of group.contacts; track contact.id) {
+              <article class="contact-item">
+                <div class="avatar" [style.background-color]="contact.avatar_color || '#2A3647'">
+                  {{ getInitials(contact) }}
+                </div>
+                <div class="contact-content">
+                  <p class="contact-name">{{ getFullName(contact) }}</p>
+                  <a [href]="'mailto:' + contact.email" class="contact-email">{{ contact.email }}</a>
+                </div>
+              </article>
+            }
+          </section>
+        }
+      }
+    </div>
+  </aside>
+</section>
