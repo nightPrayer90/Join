@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Supabase } from './service/supabase';
 import { JsonPipe } from '@angular/common';
 
 @Component({
@@ -10,5 +9,4 @@ import { JsonPipe } from '@angular/common';
   styleUrl: './app.scss',
 })
 export class App {
-  dbService: Supabase = inject(Supabase);
 }
