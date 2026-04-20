@@ -6,10 +6,3 @@ export interface Contact {
   avatar_color: string;
   isUser: boolean;
 }
-
-export interface ContactInsert {
-  full_name: string;
-  email: string;
-  phone: string;
-  avatar_color: string;
-}

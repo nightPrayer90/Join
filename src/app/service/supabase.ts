@@ -4,8 +4,9 @@
  */
 
 import { Injectable, signal } from '@angular/core';
-import { createClient, Session, User } from '@supabase/supabase-js';
-import { Contact, ContactInsert } from '../shared/interface/contact-interface';
+import { createClient, RealtimeChannel, Session, User } from '@supabase/supabase-js';
+import { Contact } from '../shared/interface/contact-interface';
+import { ContactsModel } from '../shared/models/contacts-model';
 
 // TODO:
 // -> parameter -> welcher tabelle wollen wir laden wir bauchen auf jeden fall wenigstens 2 listen -> contacts und member,
@@ -27,7 +28,17 @@ export class Supabase {
   supabase = createClient(this.supabaseUrl, this.supabaseKey);
 
   user = signal<User | null>(null);
-  contacts = signal<Contact[]>([]);
+  contacts = signal<ContactsModel[]>([]);
+  contact = signal<Contact>({
+    "id": -1,
+    "full_name": "n/a",
+    "email": "n/a",
+    "phone": "n/a",
+    "avatar_color":"#FFFFFF",
+    "isUser": false
+  }); // TODO: IS not in use
+
+  channels: RealtimeChannel | undefined;
 
   /**
    * Important:
@@ -41,6 +52,11 @@ export class Supabase {
    */
   constructor() {
     this.initAuthListener();
+    this.subscripeChannel();
+  }
+
+  ngOnDestroy() {
+    if (this.channels) this.supabase.removeChannel(this.channels);
   }
 
   //#region SERVICE INIT -------------------------------------------------------------------------
@@ -59,13 +75,26 @@ export class Supabase {
     });
   }
 
+  private subscripeChannel() {
+    this.channels = this.supabase
+      .channel('custom-all-channel')
+      .on(
+        'postgres_changes', 
+        { event: '*', schema: 'public', table: 'contacts' }, 
+        (payload) => {
+        /*  let tempContact = new Contact */
+        console.log('Change received!', payload.new);
+      })
+      .subscribe();
+  }
+
   /**
    * Handles initialization - user state.
    *
    * Sets the current user from the session and loads all user-related data.
    * This is triggered by the global auth state listener.
    */
-  initUserIsLoggedIn(session: Session): void {
+  private initUserIsLoggedIn(session: Session): void {
     this.user.set(session.user);
     this.getContacts();
   }
@@ -76,7 +105,7 @@ export class Supabase {
    * Clears the current user and resets all user-related data.
    * This is triggered by the global auth state listener.
    */
-  initUserIsGuest(): void {
+  private initUserIsGuest(): void {
     this.user.set(null);
     this.getContacts();
   }
@@ -172,24 +201,15 @@ export class Supabase {
   //#region CONTACT DATA -------------------------------------------------------------------------
   async getContacts() {
     const { data: contacts, error } = (await this.supabase.from('contacts').select('*')) as {
-      data: Contact[] | null;
+      data: ContactsModel[] | null;
       error: null;
     };
 
     if (contacts === null) return; // TODO: Errorhandling
 
-    this.contacts.set(contacts);
-  }
+    this.contacts.set((contacts ?? []) as ContactsModel[]);
 
-  getContactFromContacts(id: number): Contact | null {
-    const contacts: Contact[] = this.contacts();
-
-    for (let i: number = 0; i < contacts.length; i++) {
-      if (contacts[i].id === id) {
-        return contacts[i];
-      }
-    }
-    return null;
+    console.log(this.contacts);
   }
 
   async getContactFromDB(id: number): Promise<Contact | null> {
@@ -208,54 +228,42 @@ export class Supabase {
   }
 
   // hinzufügen
-  async setContact(contactInsert: ContactInsert): Promise<void> {
-    const { data: contactInsertDB, error } = (await this.supabase
+  async addContact(contact: ContactsModel): Promise<void> {
+    const contact_data = contact.getCleanAddJson();
+    const { data, error } = await this.supabase
       .from('contacts')
-      .insert(contactInsert)
+      .insert(contact_data)
       .select()
-      .single()) as {
-      data: Contact | null;
-      error: null;
-    };
-
-    if (contactInsertDB === null) {
-      return; // TODO: ErrorHandling
-    }
-
-    const tmpContacsCopy = this.contacts().slice();
-    tmpContacsCopy.push(contactInsertDB);
-    this.contacts.set(tmpContacsCopy);
+    
+      this.contacts.update(list => [...list, contact]);
   }
 
   // bearbeiten
-  async updateContact(id: number, contactInsert: ContactInsert): Promise<void> {
-    const { data: updatedContact, error } = (await this.supabase
-      .from('contacts')
-      .update(contactInsert)
-      .eq('id', id)
-      .select()
-      .single()) as { data: Contact | null; error: any;};
+  // async updateContact(id: number, contactInsert: ContactInsert): Promise<void> {
+  //   const { data: updatedContact, error } = (await this.supabase
+  //     .from('contacts')
+  //     .update(contactInsert)
+  //     .eq('id', id)
+  //     .select()
+  //     .single()) as { data: Contact | null; error: any };
 
-    if (updatedContact === null) {
-      return; // TODO: ErrorHandling
-    }
+  //   if (updatedContact === null) {
+  //     return; // TODO: ErrorHandling
+  //   }
 
-    const tmpContacsCopy = this.contacts().slice();
+  //   const tmpContacsCopy = this.contacts().slice();
 
-    for (let i = 0; i < tmpContacsCopy.length; i++) {
-      if (tmpContacsCopy[i].id === id) {
-        tmpContacsCopy[i] = updatedContact;
-        break;
-      }
-    }
+  //   for (let i = 0; i < tmpContacsCopy.length; i++) {
+  //     if (tmpContacsCopy[i].id === id) {
+  //       tmpContacsCopy[i] = updatedContact;
+  //       break;
+  //     }
+  //   }
 
-    this.contacts.set(tmpContacsCopy);
-  }
+  //   this.contacts.set(tmpContacsCopy);
+  // }
 
-  getInitials(contact: Contact): string {
-    const parts = contact.full_name.trim().split(/\s+/).filter(Boolean);
-    const first = parts[0]?.charAt(0) || '';
-    const second = parts[1]?.charAt(0) || '';
-    return `${first}${second || first}`.toUpperCase();
-  }
+  // async deleteContact(id: number): Promise<void> {
+  //   const { data, error } = await this.supabase.from('contacts').delete().eq('id', id);
+  // }
 }
