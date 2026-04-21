@@ -266,11 +266,13 @@
           display: flex;
           gap: 30px;
 
-          a {
+          button {
             display: flex;
             align-items: center;
             gap: 6px;
             width: 75px;
+            border: none;
+            background: none;
 
             font-size: $font-size-base;
             font-weight: $font-weight-regular;

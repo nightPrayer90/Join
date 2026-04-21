@@ -58,4 +58,12 @@ export class Contacts {
       this.detailsVisible.set(true);
     }, 10);
   }
+
+  deleteContact(id: number): void {
+    console.log("deleteContact " + id);
+  }
+
+  openDialog(id: number): void {
+    console.log("openDialog " + id);
+  }
 }
