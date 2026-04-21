@@ -1,0 +1,74 @@
+@use 'colors' as *;
+@use 'typography' as *;
+
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 48px;
+  padding: 0 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-family: $font-family-base;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.1s ease,
+    border-color 0.1s ease,
+    color 0.1s ease,
+    box-shadow 0.1s ease;
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background: $color-primary;
+  border-color: $color-primary;
+  color: $color-bg-surface;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    background: $color-accent;
+    border-color: $color-accent;
+    box-shadow: 0 4px 8px $color-shadow-soft;
+    outline: none;
+  }
+}
+
+@mixin btn-secondary {
+  @include btn-base;
+  background: $color-bg-surface;
+  border-color: $color-primary;
+  color: $color-primary;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    color: $color-accent;
+    border-color: $color-accent;
+    box-shadow: 0 4px 8px $color-shadow-soft;
+    outline: none;
+  }
+}
+
+.btn {
+  @include btn-base;
+}
+
+.btn-primary {
+  @include btn-primary;
+}
+
+.btn-secondary {
+  @include btn-secondary;
+}
