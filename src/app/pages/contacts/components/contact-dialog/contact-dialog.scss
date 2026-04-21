@@ -1,0 +1,189 @@
+@use 'colors' as *;
+@use 'typography' as *;
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  box-sizing: border-box;
+  @include flex-center;
+}
+
+.dialog-card {
+  width: 1212px;
+  max-width: calc(100vw - 4rem);
+  min-height: 592px;
+  border-radius: 30px;
+  background: $color-bg-surface;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  @include flex-center;
+  justify-content: flex-start;
+}
+
+.dialog-left {
+  width: 467px;
+  min-height: 592px;
+  background: $color-primary;
+  color: $color-bg-surface;
+  padding: 66px 48px;
+  box-sizing: border-box;
+  @include flex-column;
+  justify-content: center;
+
+  h2 {
+    margin: 8px 0 0;
+    font-size: 61px;
+    font-weight: $font-weight-bold;
+    line-height: $line-height-tight;
+    color: $color-bg-surface;
+  }
+
+  p {
+    margin: 12px 0 0;
+    font-size: 27px;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-tight;
+    color: $color-bg-surface;
+  }
+}
+
+.dialog-logo {
+  width: 55px;
+  height: auto;
+}
+
+.left-divider {
+  width: 90px;
+  height: 3px;
+  border-radius: 2px;
+  background: $color-accent;
+  margin-top: 32px;
+}
+
+.dialog-right {
+  flex: 1;
+  min-height: 592px;
+  padding: 32px 48px 32px 32px;
+  box-sizing: border-box;
+  @include flex-column;
+}
+
+.close-btn {
+  @include reset-button;
+  @include flex-center;
+  align-self: flex-end;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 24px;
+  line-height: 1;
+  color: $color-primary;
+  transition: background-color 0.1s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-bg-hover-light;
+    outline: none;
+  }
+}
+
+.dialog-content {
+  margin-top: 64px;
+  @include flex-center;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 72px;
+}
+
+.avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #d1d1d1;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  @include flex-center;
+
+  img {
+    width: 64px;
+    height: 64px;
+    opacity: 0.85;
+    filter: brightness(0) invert(1);
+  }
+}
+
+.avatar-edit {
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+
+  span {
+    color: $color-bg-surface;
+    font-size: 47px;
+    font-weight: $font-weight-regular;
+    line-height: 1.2;
+  }
+}
+
+.dialog-form {
+  width: 422px;
+  @include flex-column;
+  gap: 32px;
+}
+
+.dialog-form .input-wrapper input {
+  width: 422px;
+}
+
+.phone-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 1;
+}
+
+.dialog-actions {
+  width: 364px;
+  margin-top: 8px;
+  @include flex-center;
+  justify-content: flex-start;
+  gap: 24px;
+}
+
+.cancel-btn {
+  width: 146px;
+  height: 57px;
+  border-radius: 10px;
+  gap: 16px;
+  font-size: 20px;
+  font-weight: $font-weight-regular;
+}
+
+.create-btn {
+  min-width: 194px;
+  width: fit-content;
+  height: 57px;
+  border-radius: 10px;
+  gap: 10px;
+  padding: 0 16px;
+  font-size: 21px;
+}
+
+.action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  font-weight: $font-weight-regular;
+  line-height: 1;
+}
