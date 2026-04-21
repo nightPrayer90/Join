@@ -88,4 +88,11 @@
 <app-contact-dialog
     [isOpen]="dialogVisible()"
     [mode]="dialogMode()"
-    (closeDialog)="closeContactDialog()" />
+    (closeDialog)="closeContactDialog()"
+    (contactCreated)="onContactCreated()" />
+
+@if (showCreatedToast()) {
+<div class="contact-created-toast">
+    Contact successfully created
+</div>
+}

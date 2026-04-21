@@ -13,6 +13,7 @@ export class ContactDialog {
   @Input() isOpen: boolean = false;
   @Input() mode: 'add' | 'edit' = 'add';
   @Output() closeDialog = new EventEmitter<void>();
+  @Output() contactCreated = new EventEmitter<void>();
 
   private dbService = inject(Supabase);
 
@@ -61,6 +62,7 @@ export class ContactDialog {
     if (!this.validateForm()) return;
 
     this.isSaving = true;
+    let createdNewContact = false;
     try {
       if (this.mode === 'edit' && this.editContactId !== null) {
         await this.dbService.updateContact(this.editContactId, new ContactsModel({
@@ -78,8 +80,12 @@ export class ContactDialog {
           avatar_color: this.getAvatarColor(),
           isUser: false,
         }));
+        createdNewContact = true;
       }
       this.resetForm();
+      if (createdNewContact) {
+        this.contactCreated.emit();
+      }
       this.closeDialog.emit();
     } catch {
       this.submitError = this.mode === 'edit'

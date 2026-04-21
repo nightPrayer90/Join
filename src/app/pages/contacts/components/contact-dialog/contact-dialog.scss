@@ -19,18 +19,19 @@
 .dialog-card {
   width: 1212px;
   max-width: calc(100vw - 4rem);
-  min-height: 592px;
+  height: 592px;
   border-radius: 30px;
   background: $color-bg-surface;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   @include flex-center;
   justify-content: flex-start;
+  align-items: stretch;
 }
 
 .dialog-left {
   width: 467px;
-  min-height: 592px;
+  height: 100%;
   background: $color-primary;
   color: $color-bg-surface;
   padding: 66px 48px;
@@ -70,16 +71,20 @@
 
 .dialog-right {
   flex: 1;
-  min-height: 592px;
+  height: 100%;
   padding: 32px 48px 32px 32px;
   box-sizing: border-box;
   @include flex-column;
+  position: relative;
+  overflow: hidden;
 }
 
 .close-btn {
   @include reset-button;
   @include flex-center;
-  align-self: flex-end;
+  position: absolute;
+  top: 32px;
+  right: 48px;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -97,7 +102,8 @@
 }
 
 .dialog-content {
-  margin-top: 64px;
+  flex: 1;
+  margin-top: 0;
   @include flex-center;
   justify-content: flex-start;
   align-items: center;
@@ -136,7 +142,7 @@
 .dialog-form {
   width: 422px;
   @include flex-column;
-  gap: 32px;
+  gap: 12px;
 }
 
 .dialog-form .input-wrapper input {
@@ -152,7 +158,7 @@
 
 .dialog-actions {
   width: 364px;
-  margin-top: 8px;
+  margin-top: 4px;
   @include flex-center;
   justify-content: flex-start;
   gap: 24px;
