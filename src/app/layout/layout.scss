@@ -1,0 +1,11 @@
+@use 'breakpoints' as *;
+
+:host {
+  display: block;
+}
+
+@include tablet {
+  .main-content {
+    padding-bottom: 80px;
+  }
+}

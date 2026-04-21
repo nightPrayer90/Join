@@ -1,6 +1,7 @@
 @use 'colors' as *;
 @use 'typography' as *;
 @use 'mixins' as *;
+@use 'breakpoints' as *;
 
 :host {
   display: contents;
@@ -112,4 +113,40 @@
   background-color: $color-primary-active;
   color: $color-text-subtle;
   transform: scale(1);
+}
+
+@include tablet {
+  .sidebar {
+    top: auto;
+    right: 0;
+    width: 100%;
+    height: auto;
+    padding: 0.5rem 0.75rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-container,
+  .footer-links {
+    display: none;
+  }
+
+  .nav {
+    flex-direction: row;
+    margin: 0;
+    gap: 0.25rem;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 14px;
+    min-width: 72px;
+    text-align: center;
+    white-space: nowrap;
+  }
 }
