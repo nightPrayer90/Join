@@ -18,7 +18,8 @@
                 <div class="group-divider"></div>
 
                 @for (contact of group.contacts; track contact.id) {
-                <article class="contact-item" (click)="openContactDetails(contact.id)">
+
+                <article [id]=`contact-item${contact.id}`  class="contact-item" [class.active]="dbService.contactDetails()?.id === contact.id" (click)="openContactDetails(contact.id)">
                     <div class="avatar" [style.background-color]="contact.avatar_color || '#2A3647'">
                         {{ contact.getInitials() }}
                     </div>

@@ -137,6 +137,13 @@
     background: linear-gradient(180deg, #f9f9f9 0%, #f0f0f0 100%);
     cursor: pointer;
   }
+
+  &.active {
+    p {
+      color: $color-bg-surface;
+    }
+    background: $color-primary-hover;
+  }
 }
 
 .avatar {
@@ -218,6 +225,14 @@
     transform: translateX(150%);
     opacity: 0;
 
+    &.active {
+    transform: translateX(0);
+    opacity: 1;
+    transition:
+      transform 0.3s ease,
+      opacity 0.3s ease;
+  }
+
     .details-bar {
       display: flex;
       align-items: center;
@@ -290,13 +305,5 @@
         color: $color-accent;
       }
     }
-  }
-
-  .details-container.active {
-    transform: translateX(0);
-    opacity: 1;
-    transition:
-      transform 0.3s ease,
-      opacity 0.3s ease;
   }
 }
