@@ -10,6 +10,7 @@
 }
 
 .contacts-page {
+  position: relative;
   height: 100%;
   background: $color-bg-page;
   display: flex;
@@ -25,6 +26,36 @@
   padding: 32px 24px 0;
   box-sizing: border-box;
   @include flex-column;
+}
+
+.contact-created-toast {
+  position: fixed;
+  left: calc(232px + 456px + 60px);
+  bottom: 24px;
+  z-index: 40;
+  min-width: 326px;
+  height: 74px;
+  padding: 0 24px;
+  border-radius: 20px;
+  background: $color-primary;
+  color: $color-bg-surface;
+  font-size: 2rem;
+  font-weight: $font-weight-regular;
+  line-height: $line-height-tight;
+  box-shadow: 0 4px 8px $color-shadow-soft;
+  @include flex-center;
+  animation: createdToastIn 0.2s ease forwards;
+}
+
+@keyframes createdToastIn {
+  from {
+    transform: translateX(340px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .add-contact-btn {

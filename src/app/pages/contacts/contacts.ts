@@ -19,6 +19,8 @@ export class Contacts {
   detailsVisible = signal(false);
   dialogVisible = signal(false);
   dialogMode = signal<'add' | 'edit'>('add');
+  showCreatedToast = signal(false);
+  private createdToastTimeoutId: number | null = null;
 
   contactsByLetter = computed<GroupedContacts[]>(() => {
     const sortedContacts = [...this.dbService.contactsList()]
@@ -85,5 +87,21 @@ export class Contacts {
 
   closeContactDialog(): void {
     this.dialogVisible.set(false);
+  }
+
+  onContactCreated(): void {
+    if (this.createdToastTimeoutId !== null) {
+      window.clearTimeout(this.createdToastTimeoutId);
+      this.createdToastTimeoutId = null;
+    }
+
+    this.showCreatedToast.set(false);
+    window.setTimeout(() => {
+      this.showCreatedToast.set(true);
+      this.createdToastTimeoutId = window.setTimeout(() => {
+        this.showCreatedToast.set(false);
+        this.createdToastTimeoutId = null;
+      }, 2000);
+    }, 0);
   }
 }
