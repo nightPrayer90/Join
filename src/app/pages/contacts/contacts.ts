@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Supabase } from '../../service/supabase';
 import { ContactsModel } from '../../shared/models/contacts-model';
+import { ContactDialog } from './components/contact-dialog/contact-dialog';
 
 type GroupedContacts = {
   letter: string;
@@ -9,7 +10,7 @@ type GroupedContacts = {
 
 @Component({
   selector: 'app-contacts',
-  imports: [],
+  imports: [ContactDialog],
   templateUrl: './contacts.html',
   styleUrl: './contacts.scss',
 })
