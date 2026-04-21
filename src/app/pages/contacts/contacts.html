@@ -1,6 +1,6 @@
 <section class="contacts-page">
     <aside class="contacts-list-panel" aria-label="Contact list">
-        <button type="button" class="add-contact-btn">
+        <button type="button" class="add-contact-btn" (click)="addContactDialog()">
             <span>Add new contact</span>
             <span class="add-contact-icon" aria-hidden="true">
                 <img src="assets/icons/person.png" alt="">
@@ -60,7 +60,7 @@
                             </svg>
                             <span>Edit</span>
                         </button>
-                        <button (click)="openDialog(dbService.contactDetails()?.id ?? -1)">
+                        <button (click)="editContactDialog(dbService.contactDetails()?.id ?? -1)">
                             <svg width="16" height="18" viewBox="0 0 16 18" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path

@@ -63,7 +63,11 @@ export class Contacts {
     console.log("deleteContact " + id);
   }
 
-  openDialog(id: number): void {
-    console.log("openDialog " + id);
+  editContactDialog(id: number): void {
+    console.log("editContactDialog " + id);
+  }
+
+  addContactDialog(): void {
+    console.log("addDialog");
   }
 }
