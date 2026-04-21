@@ -15,21 +15,49 @@
           <img src="assets/icons/person.png" alt="" aria-hidden="true">
         </div>
 
-        <div class="dialog-form">
-          <div class="input-wrapper">
-            <input type="text" placeholder="Name">
+        <form class="dialog-form" novalidate (ngSubmit)="onSubmit()">
+          <div class="input-wrapper" [class.has-error]="fullNameError">
+            <input
+              type="text"
+              name="fullName"
+              placeholder="Name"
+              [(ngModel)]="fullName"
+              (input)="onFullNameInput()">
             <img src="assets/icons/person.png" alt="" aria-hidden="true" class="input-icon">
           </div>
+          @if (fullNameError) {
+            <p class="field-error">{{ fullNameError }}</p>
+          }
 
-          <div class="input-wrapper">
-            <input type="email" placeholder="Email">
+          <div class="input-wrapper" [class.has-error]="emailError">
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              [(ngModel)]="email"
+              (input)="onEmailInput()">
             <img src="assets/icons/mail.png" alt="" aria-hidden="true" class="input-icon">
           </div>
+          @if (emailError) {
+            <p class="field-error">{{ emailError }}</p>
+          }
 
-          <div class="input-wrapper">
-            <input type="text" placeholder="Phone">
+          <div class="input-wrapper" [class.has-error]="phoneError">
+            <input
+              type="text"
+              name="phone"
+              placeholder="Phone"
+              [(ngModel)]="phone"
+              (input)="onPhoneInput()">
             <img src="assets/icons/call.svg" alt="" aria-hidden="true" class="input-icon phone-icon">
           </div>
+          @if (phoneError) {
+            <p class="field-error">{{ phoneError }}</p>
+          }
+
+          @if (submitError) {
+            <p class="form-error">{{ submitError }}</p>
+          }
 
           <div class="dialog-actions">
             <button type="button" class="btn-secondary cancel-btn">
@@ -37,12 +65,12 @@
               <span class="action-icon">×</span>
             </button>
 
-            <button type="button" class="btn-primary create-btn">
-              <span>Create contact</span>
+            <button type="submit" class="btn-primary create-btn" [disabled]="isSaving">
+              <span>{{ isSaving ? 'Creating...' : 'Create contact' }}</span>
               <span class="action-icon">✓</span>
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   </article>
