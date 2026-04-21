@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Supabase } from '../../../../service/supabase';
 import { ContactsModel } from '../../../../shared/models/contacts-model';
@@ -10,16 +10,35 @@ import { ContactsModel } from '../../../../shared/models/contacts-model';
   styleUrl: './contact-dialog.scss',
 })
 export class ContactDialog {
+  @Input() isOpen: boolean = false;
+  @Input() mode: 'add' | 'edit' = 'add';
+  @Output() closeDialog = new EventEmitter<void>();
+
   private dbService = inject(Supabase);
 
+  editContactId: number | null = null;
   fullName: string = '';
   email: string = '';
   phone: string = '';
+  avatarColor: string = '#d1d1d1';
+  avatarInitials: string = '';
   fullNameError: string = '';
   emailError: string = '';
   phoneError: string = '';
   submitError: string = '';
   isSaving: boolean = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const modeChanged = !!changes['mode'];
+    const openChanged = !!changes['isOpen'];
+    if (!modeChanged && !openChanged) return;
+    if (!this.isOpen) return;
+    if (this.mode === 'edit') {
+      this.applyEditData();
+      return;
+    }
+    this.prepareAddData();
+  }
 
   onFullNameInput(): void {
     this.fullNameError = '';
@@ -42,22 +61,54 @@ export class ContactDialog {
     if (!this.validateForm()) return;
 
     this.isSaving = true;
-    const contact = new ContactsModel({
-      full_name: this.fullName.trim(),
-      email: this.email.trim(),
-      phone: this.phone.trim(),
-      avatar_color: this.getAvatarColor(),
-      isUser: false,
-    });
-
     try {
-      await this.dbService.addContact(contact);
+      if (this.mode === 'edit' && this.editContactId !== null) {
+        await this.dbService.updateContact(this.editContactId, new ContactsModel({
+          id: this.editContactId,
+          full_name: this.fullName.trim(),
+          email: this.email.trim(),
+          phone: this.phone.trim(),
+          avatar_color: this.avatarColor,
+        }));
+      } else {
+        await this.dbService.addContact(new ContactsModel({
+          full_name: this.fullName.trim(),
+          email: this.email.trim(),
+          phone: this.phone.trim(),
+          avatar_color: this.getAvatarColor(),
+          isUser: false,
+        }));
+      }
       this.resetForm();
+      this.closeDialog.emit();
     } catch {
-      this.submitError = 'Contact could not be created. Please try again.';
+      this.submitError = this.mode === 'edit'
+        ? 'Contact could not be updated. Please try again.'
+        : 'Contact could not be created. Please try again.';
     } finally {
       this.isSaving = false;
     }
+  }
+
+  async onDelete(): Promise<void> {
+    if (this.mode !== 'edit') return;
+    if (this.isSaving) return;
+    if (this.editContactId === null) return;
+    this.submitError = '';
+    this.isSaving = true;
+    try {
+      await this.dbService.deleteContact(this.editContactId);
+      this.resetForm();
+      this.closeDialog.emit();
+    } catch {
+      this.submitError = 'Contact could not be deleted. Please try again.';
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  onClose(): void {
+    this.closeDialog.emit();
   }
 
   private validateForm(): boolean {
@@ -112,9 +163,43 @@ export class ContactDialog {
   }
 
   private resetForm(): void {
+    this.editContactId = null;
     this.fullName = '';
     this.email = '';
     this.phone = '';
+    this.avatarColor = '#d1d1d1';
+    this.avatarInitials = '';
+    this.fullNameError = '';
+    this.emailError = '';
+    this.phoneError = '';
+    this.submitError = '';
+  }
+
+  private prepareAddData(): void {
+    this.editContactId = null;
+    this.fullName = '';
+    this.email = '';
+    this.phone = '';
+    this.avatarColor = '#d1d1d1';
+    this.avatarInitials = '';
+    this.fullNameError = '';
+    this.emailError = '';
+    this.phoneError = '';
+    this.submitError = '';
+  }
+
+  private applyEditData(): void {
+    const contact = this.dbService.contactDetails();
+    if (!contact) {
+      this.submitError = 'No contact selected for editing.';
+      return;
+    }
+    this.editContactId = contact.id;
+    this.fullName = contact.full_name;
+    this.email = contact.email;
+    this.phone = contact.phone;
+    this.avatarColor = contact.avatar_color || '#d1d1d1';
+    this.avatarInitials = contact.getInitials();
     this.fullNameError = '';
     this.emailError = '';
     this.phoneError = '';

@@ -17,6 +17,8 @@ type GroupedContacts = {
 export class Contacts {
   dbService: Supabase = inject(Supabase);
   detailsVisible = signal(false);
+  dialogVisible = signal(false);
+  dialogMode = signal<'add' | 'edit'>('add');
 
   contactsByLetter = computed<GroupedContacts[]>(() => {
     const sortedContacts = [...this.dbService.contactsList()]
@@ -60,15 +62,28 @@ export class Contacts {
     }, 10);
   }
 
-  deleteContact(id: number): void {
-    console.log("deleteContact " + id);
+  async deleteContact(id: number): Promise<void> {
+    if (id < 0) return;
+
+    await this.dbService.deleteContact(id);
+    this.dbService.contactDetailsId.set(null);
+    this.detailsVisible.set(false);
   }
 
   editContactDialog(id: number): void {
-    console.log("editContactDialog " + id);
+    if (id < 0) return;
+    this.dbService.getContactDetails(id);
+    this.dialogMode.set('edit');
+    this.dialogVisible.set(true);
   }
 
   addContactDialog(): void {
-    console.log("addDialog");
+    this.dbService.contactDetailsId.set(null);
+    this.dialogMode.set('add');
+    this.dialogVisible.set(true);
+  }
+
+  closeContactDialog(): void {
+    this.dialogVisible.set(false);
   }
 }

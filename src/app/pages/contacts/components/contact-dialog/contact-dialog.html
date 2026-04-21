@@ -1,19 +1,28 @@
+@if (isOpen) {
 <section class="dialog-overlay">
   <article class="dialog-card">
     <aside class="dialog-left">
       <img src="assets/logos/join-logo.png" alt="Join Logo" class="dialog-logo">
-      <h2>Add contact</h2>
+      <h2>{{ mode === 'edit' ? 'Edit contact' : 'Add contact' }}</h2>
+      @if (mode === 'add') {
       <p>Tasks are better with a team!</p>
+      }
       <span class="left-divider" aria-hidden="true"></span>
     </aside>
 
     <div class="dialog-right">
-      <button type="button" class="close-btn" aria-label="Close dialog">×</button>
+      <button type="button" class="close-btn" aria-label="Close dialog" (click)="onClose()">×</button>
 
       <div class="dialog-content">
+        @if (mode === 'edit') {
+        <div class="avatar-placeholder avatar-edit" [style.background-color]="avatarColor">
+          <span>{{ avatarInitials }}</span>
+        </div>
+        } @else {
         <div class="avatar-placeholder">
           <img src="assets/icons/person.png" alt="" aria-hidden="true">
         </div>
+        }
 
         <form class="dialog-form" novalidate (ngSubmit)="onSubmit()">
           <div class="input-wrapper" [class.has-error]="fullNameError">
@@ -60,7 +69,17 @@
           }
 
           <div class="dialog-actions">
-            <button type="button" class="btn-secondary cancel-btn">
+            @if (mode === 'edit') {
+            <button type="button" class="btn-secondary cancel-btn" [disabled]="isSaving" (click)="onDelete()">
+              <span>Delete</span>
+            </button>
+
+            <button type="submit" class="btn-primary create-btn" [disabled]="isSaving">
+              <span>{{ isSaving ? 'Saving...' : 'Save' }}</span>
+              <span class="action-icon">✓</span>
+            </button>
+            } @else {
+            <button type="button" class="btn-secondary cancel-btn" (click)="onClose()">
               <span>Cancel</span>
               <span class="action-icon">×</span>
             </button>
@@ -69,9 +88,11 @@
               <span>{{ isSaving ? 'Creating...' : 'Create contact' }}</span>
               <span class="action-icon">✓</span>
             </button>
+            }
           </div>
         </form>
       </div>
     </div>
   </article>
 </section>
+}
