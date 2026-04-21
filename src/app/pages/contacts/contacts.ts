@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { Supabase } from '../../service/supabase';
 import { ContactsModel } from '../../shared/models/contacts-model';
 
@@ -14,21 +14,20 @@ type GroupedContacts = {
   styleUrl: './contacts.scss',
 })
 export class Contacts {
-  dbService = inject(Supabase);
+  dbService: Supabase = inject(Supabase);
+  detailsVisible = signal(false);
 
   contactsByLetter = computed<GroupedContacts[]>(() => {
-    
     const sortedContacts = [...this.dbService.contactsList()]
-    .map(c => new ContactsModel(c))
-    .sort((a, b) => {
-      const fullNameA = this.fullNameFrom(a);
-      const fullNameB = this.fullNameFrom(b);
-      return fullNameA.localeCompare(fullNameB, 'de', { sensitivity: 'base' });
-    });
+      .map((c) => new ContactsModel(c))
+      .sort((a, b) => {
+        const fullNameA = this.fullNameFrom(a);
+        const fullNameB = this.fullNameFrom(b);
+        return fullNameA.localeCompare(fullNameB, 'de', { sensitivity: 'base' });
+      });
 
     const grouped = new Map<string, ContactsModel[]>();
 
-    
     for (const contact of sortedContacts) {
       const fullName = this.fullNameFrom(contact);
       const firstLetter = (fullName.charAt(0) || '#').toUpperCase();
@@ -43,17 +42,20 @@ export class Contacts {
     return Array.from(grouped.entries()).map(([letter, contacts]) => ({ letter, contacts }));
   });
 
-
   fullNameFrom(contact: ContactsModel): string {
     return contact.full_name.trim();
   }
 
-  // Schnittstelle für die Detail Ansicht
-  openContactDetails(id: number) {
-    // Aktualisiert das Datenbank Signal 
-    this.dbService.getContactDetails(id);
+  openContactDetails(id: number): void {
+    if (this.dbService.contactDetails()?.id === id) {
+      return;
+    }
 
-    // Datanbanksignal für die Weiterververarbeitung -> ist Datenbank sync
-    console.log(this.dbService.contactDetails());
+    this.dbService.getContactDetails(id);
+    this.detailsVisible.set(false);
+
+    setTimeout(() => {
+      this.detailsVisible.set(true);
+    }, 10);
   }
 }

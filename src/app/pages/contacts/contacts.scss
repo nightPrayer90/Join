@@ -12,6 +12,8 @@
 .contacts-page {
   height: 100%;
   background: $color-bg-page;
+  display: flex;
+  flex-direction: row;
 }
 
 .contacts-list-panel {
@@ -175,5 +177,126 @@
   &:focus-visible {
     text-decoration: underline;
     outline: none;
+  }
+}
+
+.contacts-details-container {
+  padding: 84px 60px;
+  width: 100%;
+
+  .details__header {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    line-height: 0;
+    margin-bottom: 38px;
+
+    h2 {
+      font-size: 3.8rem;
+    }
+
+    div {
+      width: 3px;
+      height: 60px;
+      background: $color-accent;
+      margin: 0px 30px;
+    }
+
+    p {
+      font-size: 1.7rem;
+      font-weight: $font-weight-regular;
+    }
+  }
+
+  .details-container {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    transform: translateX(150%);
+    opacity: 0;
+
+    .details-bar {
+      display: flex;
+      align-items: center;
+      line-height: $line-height-base;
+
+      &__avatar {
+        @include flex-center;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        color: $color-bg-surface;
+        font-size: 3rem;
+        font-weight: $font-weight-medium;
+        border: 3px solid $color-bg-surface;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+      }
+
+      &__name {
+        margin-left: 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        h3 {
+          font-weight: $font-weight-medium;
+          font-size: 3rem;
+        }
+
+        div {
+          display: flex;
+          gap: 30px;
+
+          a {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 75px;
+
+            font-size: $font-size-base;
+            font-weight: $font-weight-regular;
+
+            &:hover {
+              font-weight: $font-weight-bold;
+              color: $color-accent;
+            }
+          }
+        }
+      }
+    }
+
+    h4 {
+      margin: 24px 0;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-regular;
+    }
+
+    .details-information {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      p {
+        font-size: $font-size-base;
+        font-weight: $font-weight-regular;
+      }
+      .bold {
+        font-weight: $font-weight-bold;
+      }
+      .accent {
+        color: $color-accent;
+      }
+    }
+  }
+
+  .details-container.active {
+    transform: translateX(0);
+    opacity: 1;
+    transition:
+      transform 0.3s ease,
+      opacity 0.3s ease;
   }
 }
