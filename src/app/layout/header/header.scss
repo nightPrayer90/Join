@@ -16,20 +16,16 @@
   @include flex-between;
 }
 
-@include tablet {
-  :host {
-    margin-left: 0;
-  }
-
-  .header {
-    padding: 0 1rem;
-  }
-}
-
 .title {
   color: $color-text;
   font-size: $font-size-lg;
   font-weight: $font-weight-regular;
+}
+
+.title-logo {
+  display: none;
+  width: 48px;
+  height: auto;
 }
 
 .actions {
@@ -110,5 +106,23 @@
   &:focus-visible {
     color: $color-bg-surface;
     outline: none;
+  }
+}
+
+@include tablet {
+  :host {
+    margin-left: 0;
+  }
+
+  .header {
+    padding: 0 1rem;
+  }
+
+  .title {
+    display: none;
+  }
+
+  .title-logo {
+    display: block;
   }
 }

@@ -1,6 +1,7 @@
 @use 'colors' as *;
 @use 'typography' as *;
 @use 'mixins' as *;
+@use 'breakpoints' as *;
 
 :host {
   display: block;
@@ -18,8 +19,8 @@
 }
 
 .contacts-list-panel {
-  width: 456px;
-  min-width: 456px;
+  width: clamp(320px, 32vw, 456px);
+  flex-shrink: 0;
   height: 100%;
   background: $color-bg-surface;
   box-shadow: 4px 0 8px rgba(0, 0, 0, 0.08);
@@ -39,7 +40,7 @@
   border-radius: 20px;
   background: $color-primary;
   color: $color-bg-surface;
-  font-size: 2rem;
+  font-size: clamp(1.125rem, 2.4vw, 2rem);
   font-weight: $font-weight-regular;
   line-height: $line-height-tight;
   box-shadow: 0 4px 8px $color-shadow-soft;
@@ -59,14 +60,14 @@
 }
 
 .add-contact-btn {
-  width: 352px;
+  width: min(352px, 100%);
   min-height: 56px;
   margin: 0 auto;
   border: none;
   border-radius: 10px;
   background: $color-primary;
   color: $color-bg-surface;
-  font-size: 1.313rem;
+  font-size: clamp(1rem, 1.5vw, 1.313rem);
   font-weight: $font-weight-bold;
   line-height: $line-height-tight;
   cursor: pointer;
@@ -110,7 +111,7 @@
 }
 
 .contacts-scroll {
-  margin-top: 24px;
+  margin-top: 8px;
   padding: 0 12px 16px;
   overflow-y: auto;
   @include flex-column;
@@ -143,8 +144,8 @@
 
 .letter-heading {
   margin: 0;
-  padding: 16px 36px;
-  font-size: $font-size-xl;
+  padding: 8px 36px;
+  font-size: clamp(1.25rem, 2vw, $font-size-xl);
   font-weight: $font-weight-regular;
   line-height: $line-height-tight;
   color: #000000;
@@ -199,7 +200,7 @@
 .contact-name {
   margin: 0;
   color: #000000;
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
   font-weight: $font-weight-regular;
   line-height: $line-height-tight;
 }
@@ -231,7 +232,7 @@
     margin-bottom: 38px;
 
     h2 {
-      font-size: 3.8rem;
+      font-size: clamp(2rem, 4.5vw, 3.8rem);
     }
 
     div {
@@ -242,7 +243,7 @@
     }
 
     p {
-      font-size: 1.7rem;
+      font-size: clamp(1rem, 1.8vw, 1.7rem);
       font-weight: $font-weight-regular;
     }
   }
@@ -275,7 +276,7 @@
         height: 120px;
         border-radius: 50%;
         color: $color-bg-surface;
-        font-size: 3rem;
+        font-size: clamp(1.5rem, 3.2vw, 3rem);
         font-weight: $font-weight-medium;
         border: 3px solid $color-bg-surface;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -290,12 +291,12 @@
 
         h3 {
           font-weight: $font-weight-medium;
-          font-size: 3rem;
+          font-size: clamp(1.5rem, 3.2vw, 3rem);
         }
 
         div {
           display: flex;
-          gap: 30px;
+          gap: 15px;
 
           button {
             display: flex;
@@ -338,5 +339,310 @@
         color: $color-accent;
       }
     }
+  }
+}
+
+.fab,
+.back-btn,
+.action-sheet,
+.action-sheet-overlay {
+  display: none;
+}
+
+@media (max-width: 1350px) {
+  .contacts-details-container {
+    .details__header {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      line-height: $line-height-base;
+
+      div {
+        display: none;
+      }
+
+      p {
+        position: relative;
+        margin-top: 8px;
+        padding-bottom: 6px;
+      }
+
+      p::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 80px;
+        height: 3px;
+        background: $color-accent;
+        border-radius: 2px;
+      }
+    }
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1150px) {
+  .contacts-details-container .details-container .details-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .contacts-details-container .details-container .details-bar__name {
+    margin-left: 0;
+  }
+}
+
+@include tablet {
+  :host {
+    margin-left: 0;
+    width: 100%;
+    height: calc(100vh - 96px - 80px);
+  }
+
+  .contacts-page {
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .contacts-list-panel {
+    width: 100%;
+    min-width: 0;
+    box-shadow: none;
+    padding: 0 8px 0;
+    height: 100%;
+  }
+
+  .add-contact-btn {
+    display: none;
+  }
+
+  .contacts-details-container {
+    display: none;
+    padding: 16px;
+  }
+
+  .contacts-page.show-details {
+    .contacts-list-panel {
+      display: none;
+    }
+
+    .contacts-details-container {
+      display: block;
+      height: 100%;
+    }
+  }
+
+  .contacts-details-container {
+    .details__header {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      line-height: $line-height-base;
+      position: relative;
+      margin-bottom: 24px;
+      padding-right: 56px;
+
+      h2 {
+        font-size: 2.5rem;
+      }
+
+      div {
+        display: none;
+      }
+
+      p {
+        position: relative;
+        font-size: $font-size-base;
+        margin-top: 8px;
+        padding-bottom: 6px;
+      }
+
+      p::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 80px;
+        height: 3px;
+        background: $color-accent;
+        border-radius: 2px;
+      }
+    }
+
+    .details-container {
+      position: static;
+      transform: none;
+      opacity: 1;
+      gap: 16px;
+
+      &.active {
+        transform: none;
+      }
+
+      .details-bar {
+        gap: 16px;
+        align-items: center;
+      }
+
+      .details-bar__avatar {
+        width: 64px;
+        height: 64px;
+        font-size: 1.5rem;
+        border-width: 2px;
+      }
+
+      .details-bar__name {
+        margin-left: 0;
+        flex: 1;
+        min-width: 0;
+
+        h3 {
+          font-size: 1.5rem;
+          font-weight: $font-weight-bold;
+          line-height: 1.2;
+          word-break: break-word;
+        }
+
+        div {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 8px;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: none;
+    color: $color-accent;
+    cursor: pointer;
+  }
+
+  .fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 16px;
+    bottom: 96px;
+    width: 56px;
+    height: 56px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      transform: scale(1.05);
+      outline: none;
+    }
+  }
+
+  .fab-add {
+    background: $color-accent;
+    color: $color-bg-surface;
+  }
+
+  .fab-more {
+    background: $color-primary;
+    color: $color-bg-surface;
+
+    svg {
+      transform: rotate(90deg);
+    }
+  }
+
+  .contacts-page:not(.show-details) .fab-more {
+    display: none;
+  }
+
+  .contacts-page.show-details .fab-add {
+    display: none;
+  }
+
+  .action-sheet-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.4);
+    animation: sheetFadeIn 0.2s ease forwards;
+  }
+
+  .action-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 41;
+    padding: 24px 24px 32px;
+    background: $color-bg-surface;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+    animation: sheetSlideUp 0.25s ease forwards;
+  }
+
+  .sheet-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 8px;
+    border: none;
+    background: none;
+    color: $color-text;
+    font-size: $font-size-base;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background-color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      background: $color-bg-hover-light;
+      outline: none;
+    }
+  }
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheetFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@include tablet {
+  .contact-created-toast {
+    left: 50%;
+    right: auto;
+    bottom: 96px;
+    transform: translateX(-50%);
+    min-width: 0;
+    max-width: calc(100% - 32px);
+    font-size: $font-size-lg;
   }
 }

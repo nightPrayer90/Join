@@ -1,6 +1,8 @@
 @if (isOpen) {
 <section class="dialog-overlay">
   <article class="dialog-card">
+    <button type="button" class="close-btn" aria-label="Close dialog" (click)="onClose()">×</button>
+
     <aside class="dialog-left">
       <img src="assets/logos/join-logo.png" alt="Join Logo" class="dialog-logo">
       <h2>{{ mode === 'edit' ? 'Edit contact' : 'Add contact' }}</h2>
@@ -11,8 +13,6 @@
     </aside>
 
     <div class="dialog-right">
-      <button type="button" class="close-btn" aria-label="Close dialog" (click)="onClose()">×</button>
-
       <div class="dialog-content">
         @if (mode === 'edit') {
         <div class="avatar-placeholder avatar-edit" [style.background-color]="avatarColor">
@@ -79,7 +79,7 @@
               <span class="action-icon">✓</span>
             </button>
             } @else {
-            <button type="button" class="btn-secondary cancel-btn" (click)="onClose()">
+            <button type="button" class="btn-secondary cancel-btn add-cancel-btn" (click)="onClose()">
               <span>Cancel</span>
               <span class="action-icon">×</span>
             </button>

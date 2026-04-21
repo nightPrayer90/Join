@@ -20,6 +20,7 @@ export class Contacts {
   dialogVisible = signal(false);
   dialogMode = signal<'add' | 'edit'>('add');
   showCreatedToast = signal(false);
+  actionSheetOpen = signal(false);
   private createdToastTimeoutId: number | null = null;
 
   contactsByLetter = computed<GroupedContacts[]>(() => {
@@ -87,6 +88,31 @@ export class Contacts {
 
   closeContactDialog(): void {
     this.dialogVisible.set(false);
+  }
+
+  openActionSheet(): void {
+    this.actionSheetOpen.set(true);
+  }
+
+  closeActionSheet(): void {
+    this.actionSheetOpen.set(false);
+  }
+
+  backToList(): void {
+    this.detailsVisible.set(false);
+    this.dbService.contactDetailsId.set(null);
+  }
+
+  editFromSheet(): void {
+    const id = this.dbService.contactDetails()?.id ?? -1;
+    this.closeActionSheet();
+    this.editContactDialog(id);
+  }
+
+  deleteFromSheet(): void {
+    const id = this.dbService.contactDetails()?.id ?? -1;
+    this.closeActionSheet();
+    this.deleteContact(id);
   }
 
   onContactCreated(): void {
