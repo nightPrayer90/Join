@@ -1,4 +1,5 @@
 <section class="contacts-page" [class.show-details]="detailsVisible()">
+    <!-- contact list -->
     <aside class="contacts-list-panel" aria-label="Contact list">
         <button type="button" class="add-contact-btn" (click)="addContactDialog()">
             <span>Add new contact</span>
@@ -35,7 +36,7 @@
         </div>
     </aside>
 
-
+    <!-- contact details -->
     <div class="contacts-details-container">
         <div class="details__header">
             <h2>Contacts</h2>
@@ -89,6 +90,7 @@
         
     </div>
 
+    <!-- responsive -->
     <button type="button" class="fab fab-add" aria-label="Add contact" (click)="addContactDialog()">
         <span class="add-contact-icon" aria-hidden="true">
             <img src="assets/icons/person.png" alt="">
@@ -123,6 +125,7 @@
 </div>
 }
 
+<!-- dialog -->
 <app-contact-dialog
     [isOpen]="dialogVisible()"
     [mode]="dialogMode()"

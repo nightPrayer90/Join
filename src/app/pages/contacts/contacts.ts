@@ -23,6 +23,7 @@ export class Contacts {
   actionSheetOpen = signal(false);
   private createdToastTimeoutId: number | null = null;
 
+  //#region contact list --------------------------------------------------------------------------
   contactsByLetter = computed<GroupedContacts[]>(() => {
     const sortedContacts = [...this.dbService.contactsList()]
       .map((c) => new ContactsModel(c))
@@ -51,7 +52,8 @@ export class Contacts {
   fullNameFrom(contact: ContactsModel): string {
     return contact.full_name.trim();
   }
-
+  //#endregion ------------------------------------------------------------------------------------
+  //#region contact details -----------------------------------------------------------------------
   openContactDetails(id: number): void {
     if (this.dbService.contactDetails()?.id === id) {
       return;
@@ -72,7 +74,10 @@ export class Contacts {
     this.dbService.contactDetailsId.set(null);
     this.detailsVisible.set(false);
   }
+  //#endregion
 
+  //#region dialog control ------------------------------------------------------------------------
+  // öffnen des dialoges im Edit modus
   editContactDialog(id: number): void {
     if (id < 0) return;
     this.dbService.getContactDetails(id);
@@ -80,39 +85,23 @@ export class Contacts {
     this.dialogVisible.set(true);
   }
 
+  // öffnen des dialoges im Add modus
   addContactDialog(): void {
+    this.detailsVisible = signal(false);
     this.dbService.contactDetailsId.set(null);
     this.dialogMode.set('add');
     this.dialogVisible.set(true);
   }
 
+  // Schließen Kreuz
   closeContactDialog(): void {
     this.dialogVisible.set(false);
   }
 
-  openActionSheet(): void {
-    this.actionSheetOpen.set(true);
-  }
-
-  closeActionSheet(): void {
-    this.actionSheetOpen.set(false);
-  }
-
+  // Schließen nach anlegen neuem Kontakt
   backToList(): void {
     this.detailsVisible.set(false);
     this.dbService.contactDetailsId.set(null);
-  }
-
-  editFromSheet(): void {
-    const id = this.dbService.contactDetails()?.id ?? -1;
-    this.closeActionSheet();
-    this.editContactDialog(id);
-  }
-
-  deleteFromSheet(): void {
-    const id = this.dbService.contactDetails()?.id ?? -1;
-    this.closeActionSheet();
-    this.deleteContact(id);
   }
 
   onContactCreated(): void {
@@ -130,4 +119,28 @@ export class Contacts {
       }, 2000);
     }, 0);
   }
+  //#endregion ------------------------------------------------------------------------------------
+  //#region ActionSheet ---------------------------------------------------------------------------
+  // Resposive - EDIT - open dialog
+  editFromSheet(): void {
+    const id = this.dbService.contactDetails()?.id ?? -1;
+    this.closeActionSheet();
+    this.editContactDialog(id);
+  }
+
+  // Resposive - delete - open dialog
+  deleteFromSheet(): void {
+    const id = this.dbService.contactDetails()?.id ?? -1;
+    this.closeActionSheet();
+    this.deleteContact(id);
+  }
+
+  openActionSheet(): void {
+    this.actionSheetOpen.set(true);
+  }
+
+  closeActionSheet(): void {
+    this.actionSheetOpen.set(false);
+  }
+  //#endregion ------------------------------------------------------------------------------------
 }
