@@ -100,12 +100,14 @@ export class ContactDialog {
     if (this.mode !== 'edit') return;
     if (this.isSaving) return;
     if (this.editContactId === null) return;
+    const deleteId = this.editContactId;
     this.submitError = '';
     this.isSaving = true;
+    this.dbService.contactDetailsId.set(null);
+    this.resetForm();
+    this.closeDialog.emit();
     try {
-      await this.dbService.deleteContact(this.editContactId);
-      this.resetForm();
-      this.closeDialog.emit();
+      await this.dbService.deleteContact(deleteId);
     } catch {
       this.submitError = 'Contact could not be deleted. Please try again.';
     } finally {
