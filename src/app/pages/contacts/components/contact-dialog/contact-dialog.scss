@@ -28,6 +28,7 @@
   @include flex-center;
   justify-content: flex-start;
   align-items: stretch;
+  animation: dialogSlideIn 0.2s ease-out forwards;
 }
 
 .dialog-left {
@@ -196,139 +197,11 @@
   line-height: 1;
 }
 
-@keyframes dialogSlideUp {
+@keyframes dialogSlideIn {
   from {
-    transform: translateY(100%);
+    transform: translateX(320px);
   }
   to {
-    transform: translateY(0);
-  }
-}
-
-@include tablet {
-  .dialog-overlay {
-    top: 96px;
-    right: 0;
-    bottom: 80px;
-    left: 0;
-    padding: 0;
-    align-items: stretch;
-    justify-content: stretch;
-  }
-
-  .dialog-card {
-    flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
-    max-height: none;
-    border-radius: 0;
-    overflow-y: auto;
-    position: relative;
-    align-items: stretch;
-    animation: dialogSlideUp 0.3s ease forwards;
-  }
-
-  .dialog-left {
-    width: 100%;
-    height: 40%;
-    min-height: 200px;
-    padding: 32px 24px;
-    align-items: flex-start;
-    justify-content: center;
-    position: relative;
-
-    h2 {
-      font-size: 40px;
-    }
-
-    p {
-      font-size: 16px;
-    }
-  }
-
-  .dialog-logo {
-    display: none;
-  }
-
-  .left-divider {
-    margin-top: 16px;
-  }
-
-  .dialog-right {
-    flex: 1;
-    padding: 72px 24px 16px;
-    min-height: 0;
-    position: relative;
-    overflow: visible;
-  }
-
-  .close-btn {
-    top: 16px;
-    right: 16px;
-    color: $color-bg-surface;
-
-    &:hover,
-    &:focus-visible {
-      background: rgba(255, 255, 255, 0.15);
-    }
-  }
-
-  .dialog-content {
-    flex-direction: column;
-    gap: 16px;
-    justify-content: flex-start;
-    align-items: stretch;
-  }
-
-  .avatar-placeholder {
-    position: absolute;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 100px;
-    z-index: 2;
-
-    img {
-      width: 48px;
-      height: 48px;
-    }
-  }
-
-  .avatar-edit span {
-    font-size: 36px;
-  }
-
-  .dialog-form {
-    width: 100%;
-    gap: 10px;
-  }
-
-  .dialog-form .input-wrapper input {
-    width: 100%;
-  }
-
-  .dialog-actions {
-    width: 100%;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin-top: 8px;
-  }
-
-  .add-cancel-btn {
-    display: none;
-  }
-
-  .cancel-btn,
-  .create-btn {
-    width: auto;
-    min-width: 0;
-  }
-
-  .create-btn {
-    padding: 0 24px;
+    transform: translateX(0);
   }
 }
