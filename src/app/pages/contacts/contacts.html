@@ -49,6 +49,7 @@
             </button>
         </div>
 
+        @if (dbService.contactDetails()) {
         <div class="details-container" [class.active]="detailsVisible()">
             <div class="details-bar">
                 <div class="details-bar__avatar" [style.background-color]="dbService.contactDetails()?.avatar_color">
@@ -86,6 +87,7 @@
                 <p>{{dbService.contactDetails()?.phone}}</p>
             </div>
         </div>
+        }
 
         
     </div>
