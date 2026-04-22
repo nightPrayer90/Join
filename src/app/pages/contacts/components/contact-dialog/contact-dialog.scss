@@ -18,10 +18,10 @@
 }
 
 .dialog-card {
-  width: 1212px;
+  width: clamp(760px, 84vw, 1212px);
   max-width: calc(100vw - 4rem);
-  height: 592px;
-  border-radius: 30px;
+  height: clamp(480px, 41vw, 592px);
+  border-radius: clamp(20px, 2.1vw, 30px);
   background: $color-bg-surface;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -32,18 +32,18 @@
 }
 
 .dialog-left {
-  width: 467px;
+  width: clamp(320px, 32.5vw, 467px);
   height: 100%;
   background: $color-primary;
   color: $color-bg-surface;
-  padding: 66px 48px;
+  padding: clamp(40px, 4.6vw, 66px) clamp(28px, 3.3vw, 48px);
   box-sizing: border-box;
   @include flex-column;
   justify-content: center;
 
   h2 {
     margin: 8px 0 0;
-    font-size: 61px;
+    font-size: clamp(40px, 4.24vw, 61px);
     font-weight: $font-weight-bold;
     line-height: $line-height-tight;
     color: $color-bg-surface;
@@ -51,7 +51,7 @@
 
   p {
     margin: 12px 0 0;
-    font-size: 27px;
+    font-size: clamp(18px, 1.9vw, 27px);
     font-weight: $font-weight-regular;
     line-height: $line-height-tight;
     color: $color-bg-surface;
@@ -59,22 +59,22 @@
 }
 
 .dialog-logo {
-  width: 55px;
+  width: clamp(40px, 3.8vw, 55px);
   height: auto;
 }
 
 .left-divider {
-  width: 90px;
+  width: clamp(64px, 6.25vw, 90px);
   height: 3px;
   border-radius: 2px;
   background: $color-accent;
-  margin-top: 32px;
+  margin-top: clamp(20px, 2.2vw, 32px);
 }
 
 .dialog-right {
   flex: 1;
   height: 100%;
-  padding: 32px 48px 32px 32px;
+  padding: clamp(20px, 2.2vw, 32px) clamp(28px, 3.3vw, 48px) clamp(20px, 2.2vw, 32px) clamp(20px, 2.2vw, 32px);
   box-sizing: border-box;
   @include flex-column;
   position: relative;
@@ -85,14 +85,14 @@
   @include reset-button;
   @include flex-center;
   position: absolute;
-  top: 32px;
-  right: 48px;
+  top: clamp(20px, 2.2vw, 32px);
+  right: clamp(28px, 3.3vw, 48px);
   z-index: 3;
   width: 32px;
   height: 32px;
   padding: 0;
   border-radius: 50%;
-  font-size: 24px;
+  font-size: clamp(20px, 1.7vw, 24px);
   line-height: 1;
   color: $color-primary;
   transition: background-color 0.1s ease;
@@ -110,12 +110,14 @@
   @include flex-center;
   justify-content: flex-start;
   align-items: center;
-  gap: 72px;
+  gap: clamp(36px, 5vw, 72px);
 }
 
 .avatar-placeholder {
-  width: 120px;
-  height: 120px;
+  width: clamp(88px, 8.3vw, 120px);
+  height: clamp(88px, 8.3vw, 120px);
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
   border-radius: 50%;
   background: #d1d1d1;
   border: 3px solid #ffffff;
@@ -123,8 +125,9 @@
   @include flex-center;
 
   img {
-    width: 64px;
-    height: 64px;
+    width: 54%;
+    height: 54%;
+    object-fit: contain;
     opacity: 0.85;
     filter: brightness(0) invert(1);
   }
@@ -136,20 +139,22 @@
 
   span {
     color: $color-bg-surface;
-    font-size: 47px;
+    font-size: clamp(30px, 3.3vw, 47px);
     font-weight: $font-weight-regular;
     line-height: 1.2;
   }
 }
 
 .dialog-form {
-  width: 422px;
+  width: 100%;
+  max-width: 422px;
   @include flex-column;
   gap: 12px;
 }
 
 .dialog-form .input-wrapper input {
-  width: 422px;
+  width: 100%;
+  height: 32px;
 }
 
 .phone-icon {
@@ -160,31 +165,32 @@
 }
 
 .dialog-actions {
-  width: 364px;
+  width: 100%;
   margin-top: 4px;
   @include flex-center;
   justify-content: flex-start;
-  gap: 24px;
+  flex-wrap: nowrap;
+  gap: clamp(12px, 1.7vw, 24px);
 }
 
 .cancel-btn {
-  width: 146px;
-  height: 57px;
+  width: clamp(120px, 10vw, 146px);
+  height: clamp(44px, 4vw, 57px);
   border-radius: 10px;
   gap: 16px;
   padding: 0 16px;
-  font-size: 20px;
+  font-size: clamp(16px, 1.4vw, 20px);
   font-weight: $font-weight-regular;
 }
 
 .create-btn {
-  min-width: 194px;
+  min-width: clamp(160px, 13.5vw, 194px);
   width: fit-content;
-  height: 57px;
+  height: clamp(44px, 4vw, 57px);
   border-radius: 10px;
   gap: 16px;
   padding: 0 16px;
-  font-size: 21px;
+  font-size: clamp(16px, 1.5vw, 21px);
 }
 
 .action-icon {
@@ -193,7 +199,7 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  font-size: 24px;
+  font-size: clamp(18px, 1.7vw, 24px);
   font-weight: $font-weight-regular;
   line-height: 1;
 }
@@ -206,3 +212,191 @@
     transform: translateX(0);
   }
 }
+
+@keyframes dialogSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 965px) {
+  .dialog-content {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+  }
+}
+
+@include tablet {
+  .dialog-overlay {
+    padding: 88px 14px 72px;
+    justify-content: center;
+    align-items: flex-end;
+  }
+
+  .dialog-card {
+    width: min(100%, 390px);
+    max-width: 390px;
+    height: calc(100vh - 160px);
+    max-height: 860px;
+    border-radius: 30px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    animation: dialogSlideUp 0.25s ease-out forwards;
+  }
+
+  .dialog-left {
+    width: 100%;
+    min-height: 282px;
+    height: 282px;
+    padding: 52px 24px 18px;
+    justify-content: flex-start;
+
+    h2 {
+      margin: 0;
+      font-size: 53px;
+      line-height: 1.05;
+    }
+
+    p {
+      margin: 18px 0 0;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+  }
+
+  .dialog-logo {
+    display: none;
+  }
+
+  .left-divider {
+    margin-top: 18px;
+  }
+
+  .close-btn {
+    top: 24px;
+    right: 18px;
+    color: $color-bg-surface;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 255, 255, 0.14);
+    }
+  }
+
+  .dialog-right {
+    height: auto;
+    flex: 1;
+    padding: 0 14px 20px;
+    overflow: visible;
+  }
+
+  .dialog-content {
+    margin-top: -58px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-width: 3px;
+    background: #d1d1d1;
+
+    img {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  .dialog-form {
+    width: min(100%, 330px);
+    gap: 12px;
+  }
+
+  .dialog-form .input-wrapper input {
+    width: 100%;
+    height: 32px;
+  }
+
+  .dialog-actions {
+    width: 100%;
+    margin-top: 6px;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .cancel-btn {
+    min-width: 132px;
+    width: auto;
+    height: 56px;
+    font-size: 1.25rem;
+  }
+
+  .create-btn {
+    min-width: 186px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+
+  .dialog-overlay.add-mode {
+    .avatar-placeholder {
+      margin-top: 16px;
+      margin-bottom: 16px;
+    }
+
+    .add-cancel-btn {
+      display: none;
+    }
+
+    .create-btn {
+      width: fit-content;
+      min-width: 0;
+    }
+  }
+}
+
+@include mobile {
+  .dialog-overlay {
+    top: 96px;
+    bottom: 72px;
+    padding: 0 14px;
+  }
+
+  .dialog-card {
+    width: min(100%, 360px);
+    max-width: 360px;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .dialog-left {
+    min-height: 180px;
+    height: auto;
+    padding: 28px 20px 12px;
+
+    h2 {
+      font-size: clamp(38px, 7.5vw, 48px);
+    }
+
+    p {
+      font-size: clamp(16px, 3.125vw, 20px);
+    }
+  }
+
+  .dialog-right {
+    padding: 0 12px 18px;
+  }
+
+  .dialog-form {
+    width: min(100%, 332px);
+  }
+}
+

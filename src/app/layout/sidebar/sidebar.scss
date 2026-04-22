@@ -120,8 +120,8 @@
     top: auto;
     right: 0;
     width: 100%;
-    height: auto;
-    padding: 0.5rem 0.75rem;
+    height: 72px;
+    padding: 0;
     flex-direction: row;
     align-items: center;
     justify-content: center;
@@ -142,11 +142,20 @@
 
   .nav-item {
     flex-direction: column;
+    justify-content: center;
     gap: 0.25rem;
-    padding: 0.5rem 0.75rem;
+    padding: 8px 12px;
     border-radius: 14px;
-    min-width: 72px;
+    width: 72px;
+    height: 64px;
+    font-size: 16px;
+    line-height: 1.2;
     text-align: center;
     white-space: nowrap;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
   }
 }

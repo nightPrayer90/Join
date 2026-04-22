@@ -1,6 +1,6 @@
 @if (isOpen) {
-<section class="dialog-overlay">
-  <article class="dialog-card">
+<section class="dialog-overlay" [class.add-mode]="mode === 'add'" [class.edit-mode]="mode === 'edit'">
+  <article class="dialog-card" [class.add-mode]="mode === 'add'" [class.edit-mode]="mode === 'edit'">
     <button type="button" class="close-btn" aria-label="Close dialog" (click)="onClose()">×</button>
 
     <aside class="dialog-left">

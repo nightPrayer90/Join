@@ -21,10 +21,10 @@
 .contacts-list-panel {
   width: clamp(320px, 32vw, 456px);
   flex-shrink: 0;
-  height: 100%;
+  height: calc(100vh - 96px);
   background: $color-bg-surface;
   box-shadow: 4px 0 8px rgba(0, 0, 0, 0.08);
-  padding: 32px 24px 0;
+  padding: 16px 8px 0 8px;
   box-sizing: border-box;
   @include flex-column;
 }
@@ -206,11 +206,14 @@
 }
 
 .contact-email {
+  display: block;
   color: #007cee;
   font-size: $font-size-base;
   font-weight: $font-weight-regular;
   line-height: $line-height-tight;
   text-decoration: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 
   &:hover,
   &:focus-visible {
@@ -258,12 +261,12 @@
     opacity: 0;
 
     &.active {
-    transform: translateX(0);
-    opacity: 1;
-    transition:
-      transform 0.3s ease,
-      opacity 0.3s ease;
-  }
+      transform: translateX(0);
+      opacity: 1;
+      transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
+    }
 
     .details-bar {
       display: flex;
@@ -337,6 +340,8 @@
       }
       .accent {
         color: $color-accent;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
     }
   }
