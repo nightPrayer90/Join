@@ -132,10 +132,10 @@
     [isOpen]="dialogVisible()"
     [mode]="dialogMode()"
     (closeDialog)="closeContactDialog()"
-    (contactCreated)="onContactCreated()" />
+    (contactCreated)="onContactCreated()"
+    (contactUpdated)="onContactUpdated()"
+    (contactDeleted)="onContactDeleted()" />
 
-@if (showCreatedToast()) {
-<div class="contact-created-toast">
-    Contact successfully created
-</div>
+@if (showToast()) {
+<app-status-toast [message]="toastMessage()" />
 }

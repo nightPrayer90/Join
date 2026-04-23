@@ -14,6 +14,8 @@ export class ContactDialog {
   @Input() mode: 'add' | 'edit' = 'add';
   @Output() closeDialog = new EventEmitter<void>();
   @Output() contactCreated = new EventEmitter<void>();
+  @Output() contactUpdated = new EventEmitter<void>();
+  @Output() contactDeleted = new EventEmitter<void>();
 
   private dbService = inject(Supabase);
 
@@ -72,6 +74,7 @@ export class ContactDialog {
           phone: this.phone.trim(),
           avatar_color: this.avatarColor,
         }));
+        this.contactUpdated.emit();
       } else {
         await this.dbService.addContact(new ContactsModel({
           full_name: this.fullName.trim(),
@@ -108,6 +111,7 @@ export class ContactDialog {
     this.closeDialog.emit();
     try {
       await this.dbService.deleteContact(deleteId);
+      this.contactDeleted.emit();
     } catch {
       this.submitError = 'Contact could not be deleted. Please try again.';
     } finally {

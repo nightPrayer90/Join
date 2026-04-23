@@ -1,0 +1,53 @@
+@use 'colors' as *;
+@use 'typography' as *;
+@use 'mixins' as *;
+@use 'breakpoints' as *;
+
+:host {
+  position: fixed;
+  left: calc(232px + 456px + 60px);
+  bottom: 24px;
+  z-index: 40;
+  animation: statusToastIn 0.2s ease forwards;
+}
+
+.status-toast {
+  min-width: 326px;
+  height: 74px;
+  padding: 0 24px;
+  border-radius: 20px;
+  background: $color-primary;
+  color: $color-bg-surface;
+  font-size: clamp(1.125rem, 2.4vw, 2rem);
+  font-weight: $font-weight-regular;
+  line-height: $line-height-tight;
+  box-shadow: 0 4px 8px $color-shadow-soft;
+  @include flex-center;
+}
+
+@keyframes statusToastIn {
+  from {
+    transform: translateX(340px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@include tablet {
+  :host {
+    left: 50%;
+    right: auto;
+    bottom: 96px;
+    transform: translateX(-50%);
+  }
+
+  .status-toast {
+    min-width: 0;
+    max-width: calc(100% - 32px);
+    font-size: $font-size-lg;
+  }
+}
