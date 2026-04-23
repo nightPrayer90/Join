@@ -2,6 +2,7 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { Supabase } from '../../service/supabase';
 import { ContactsModel } from '../../shared/models/contacts-model';
 import { ContactDialog } from './components/contact-dialog/contact-dialog';
+import { StatusToast } from '../../shared/components/status-toast/status-toast';
 
 type GroupedContacts = {
   letter: string;
@@ -10,7 +11,7 @@ type GroupedContacts = {
 
 @Component({
   selector: 'app-contacts',
-  imports: [ContactDialog],
+  imports: [ContactDialog, StatusToast],
   templateUrl: './contacts.html',
   styleUrl: './contacts.scss',
 })
@@ -19,9 +20,10 @@ export class Contacts {
   detailsVisible = signal(false);
   dialogVisible = signal(false);
   dialogMode = signal<'add' | 'edit'>('add');
-  showCreatedToast = signal(false);
+  showToast = signal(false);
+  toastMessage = signal('');
   actionSheetOpen = signal(false);
-  private createdToastTimeoutId: number | null = null;
+  private toastTimeoutId: number | null = null;
 
   //#region contact list --------------------------------------------------------------------------
   contactsByLetter = computed<GroupedContacts[]>(() => {
@@ -73,6 +75,7 @@ export class Contacts {
     await this.dbService.deleteContact(id);
     this.dbService.contactDetailsId.set(null);
     this.detailsVisible.set(false);
+    this.triggerToast('Contact successfully deleted');
   }
   //#endregion
 
@@ -105,17 +108,30 @@ export class Contacts {
   }
 
   onContactCreated(): void {
-    if (this.createdToastTimeoutId !== null) {
-      window.clearTimeout(this.createdToastTimeoutId);
-      this.createdToastTimeoutId = null;
+    this.triggerToast('Contact successfully created');
+  }
+
+  onContactUpdated(): void {
+    this.triggerToast('Contact successfully updated');
+  }
+
+  onContactDeleted(): void {
+    this.triggerToast('Contact successfully deleted');
+  }
+
+  private triggerToast(message: string): void {
+    if (this.toastTimeoutId !== null) {
+      window.clearTimeout(this.toastTimeoutId);
+      this.toastTimeoutId = null;
     }
 
-    this.showCreatedToast.set(false);
+    this.showToast.set(false);
+    this.toastMessage.set(message);
     window.setTimeout(() => {
-      this.showCreatedToast.set(true);
-      this.createdToastTimeoutId = window.setTimeout(() => {
-        this.showCreatedToast.set(false);
-        this.createdToastTimeoutId = null;
+      this.showToast.set(true);
+      this.toastTimeoutId = window.setTimeout(() => {
+        this.showToast.set(false);
+        this.toastTimeoutId = null;
       }, 2000);
     }, 0);
   }
