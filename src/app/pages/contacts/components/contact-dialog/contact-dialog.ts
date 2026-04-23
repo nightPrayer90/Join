@@ -14,6 +14,7 @@ export class ContactDialog {
   @Input() mode: 'add' | 'edit' = 'add';
   @Output() closeDialog = new EventEmitter<void>();
   @Output() contactCreated = new EventEmitter<void>();
+  @Output() contactCreatedWithId = new EventEmitter<number>();
   @Output() contactUpdated = new EventEmitter<void>();
   @Output() contactDeleted = new EventEmitter<void>();
 
@@ -76,13 +77,16 @@ export class ContactDialog {
         }));
         this.contactUpdated.emit();
       } else {
-        await this.dbService.addContact(new ContactsModel({
+        const createdId = await this.dbService.addContact(new ContactsModel({
           full_name: this.fullName.trim(),
           email: this.email.trim(),
           phone: this.phone.trim(),
           avatar_color: this.getAvatarColor(),
           isUser: false,
         }));
+        if (createdId !== null) {
+          this.contactCreatedWithId.emit(createdId);
+        }
         createdNewContact = true;
       }
       this.resetForm();
@@ -136,26 +140,50 @@ export class ContactDialog {
   private validateName(): boolean {
     const value = this.fullName.trim();
     const hasNumber = /\d/.test(value);
-    const hasFirstAndLast = value.split(/\s+/).filter(Boolean).length >= 2;
+    const tokens = value.split(/\s+/).filter(Boolean);
+    const hasFirstAndLast = tokens.length >= 2;
+    const dottedTokenRegex = /^[A-Za-zÄÖÜäöüß]\.$/;
+    const dottedTokens = tokens.filter((token) => token.includes('.'));
+    const firstToken = tokens[0] ?? '';
+    const secondToken = tokens[1] ?? '';
+    const lastToken = tokens[tokens.length - 1] ?? '';
+
     if (!value) return this.setFullNameError('Please enter first and last name.');
     if (hasNumber) return this.setFullNameError('Name cannot contain numbers.');
     if (!hasFirstAndLast) return this.setFullNameError('Please enter first and last name.');
+
+    if (dottedTokens.length > 0) {
+      if (tokens.length < 3) {
+        return this.setFullNameError('Use abbreviations only as middle name, e.g. "Norman K. Pfalzer".');
+      }
+
+      if (!dottedTokenRegex.test(secondToken) || !dottedTokens.every((token) => dottedTokenRegex.test(token))) {
+        return this.setFullNameError('Use abbreviations only as middle name, e.g. "Norman K. Pfalzer".');
+      }
+
+      if (dottedTokenRegex.test(firstToken) || dottedTokenRegex.test(lastToken)) {
+        return this.setFullNameError('Use abbreviations only as middle name, e.g. "Norman K. Pfalzer".');
+      }
+    }
+
     return true;
   }
 
   private validateEmail(): boolean {
     const value = this.email.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!value) return this.setEmailError('Please enter your email.');
-    if (!emailRegex.test(value)) return this.setEmailError('Please enter a valid email address.');
+    if (!emailRegex.test(value)) return this.setEmailError('Please enter a valid email address without unsupported special characters.');
     return true;
   }
 
   private validatePhone(): boolean {
     const value = this.phone.trim();
     const phoneRegex = /^\+?\d[\d\s-]*$/;
+    const digitsOnly = value.replace(/\D/g, '');
     if (!value) return this.setPhoneError('Please enter your phone number.');
     if (!phoneRegex.test(value)) return this.setPhoneError('Phone may contain digits, spaces, "-" and optional "+".');
+    if (digitsOnly.length < 7) return this.setPhoneError('Phone number must contain at least 7 digits.');
     return true;
   }
 

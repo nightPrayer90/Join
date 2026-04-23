@@ -268,11 +268,20 @@ export class Supabase {
    * Inserts a new contact into the database.
    * @param contact - The contact model to be added
    */
-  async addContact(contact: ContactsModel): Promise<void> {
+  async addContact(contact: ContactsModel): Promise<number | null> {
     const contact_data = contact.getCleanAddJson();
-    const { data, error } = await this.supabase.from('contacts').insert(contact_data);
+    const { data, error } = await this.supabase
+      .from('contacts')
+      .insert(contact_data)
+      .select('id')
+      .single();
 
-    if (error) console.log('The contact could not be added!'); //TODO: errorHandling
+    if (error || !data) {
+      console.log('The contact could not be added!'); //TODO: errorHandling
+      return null;
+    }
+
+    return data.id;
   }
 
   /**

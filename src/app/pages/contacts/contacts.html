@@ -133,6 +133,7 @@
     [mode]="dialogMode()"
     (closeDialog)="closeContactDialog()"
     (contactCreated)="onContactCreated()"
+    (contactCreatedWithId)="onContactCreatedWithId($event)"
     (contactUpdated)="onContactUpdated()"
     (contactDeleted)="onContactDeleted()" />
 

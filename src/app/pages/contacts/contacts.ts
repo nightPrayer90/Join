@@ -111,6 +111,12 @@ export class Contacts {
     this.triggerToast('Contact successfully created');
   }
 
+  onContactCreatedWithId(id: number): void {
+    this.dbService.contactDetailsId.set(id);
+    this.detailsVisible.set(true);
+    this.dialogVisible.set(false);
+  }
+
   onContactUpdated(): void {
     this.triggerToast('Contact successfully updated');
   }
