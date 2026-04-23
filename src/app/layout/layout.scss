@@ -2,10 +2,20 @@
 
 :host {
   display: block;
+  padding-left: 232px;
+}
+
+.main-content {
+  max-width: 1440px;
 }
 
 @include tablet {
+  :host {
+    padding-left: 0;
+  }
+
   .main-content {
+    max-width: none;
     padding-bottom: 80px;
   }
 }
