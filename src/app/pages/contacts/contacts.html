@@ -1,6 +1,6 @@
 <section class="contacts-page" [class.show-details]="detailsVisible()">
     <!-- contact list -->
-    <aside class="contacts-list-panel" aria-label="Contact list">
+    <div class="contacts-list-panel" aria-label="Contact list">
         <button type="button" class="add-contact-btn" (click)="addContactDialog()">
             <span>Add new contact</span>
             <span class="add-contact-icon" aria-hidden="true">
@@ -26,7 +26,7 @@
                     </div>
                     <div class="contact-content">
                         <p class="contact-name">{{ contact.full_name }}</p>
-                        <a [href]="'mailto:' + contact.email" class="contact-email">{{ contact.email }}</a>
+                        <p class="contact-email">{{ contact.email }}</p>
                     </div>
                 </article>
                 }
@@ -34,7 +34,7 @@
             }
             }
         </div>
-    </aside>
+    </div>
 
     <!-- contact details -->
     <div class="contacts-details-container">
