@@ -260,7 +260,7 @@ export class Supabase {
    * Triggers reactive updates based on the selected contact.
    * @param id - The id of the contact to display
    */
-  getContactDetails(id: number) {
+  getContactDetails(id: number | null) {
     this.contactDetailsId.set(id);
   }
 
