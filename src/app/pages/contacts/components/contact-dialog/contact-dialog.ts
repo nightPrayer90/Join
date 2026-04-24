@@ -142,26 +142,33 @@ export class ContactDialog {
     const hasNumber = /\d/.test(value);
     const tokens = value.split(/\s+/).filter(Boolean);
     const hasFirstAndLast = tokens.length >= 2;
+    const nameTokenRegex = /^[A-Za-zÄÖÜäöüß]+(?:-[A-Za-zÄÖÜäöüß]+)?$/;
     const dottedTokenRegex = /^[A-Za-zÄÖÜäöüß]\.$/;
     const dottedTokens = tokens.filter((token) => token.includes('.'));
-    const firstToken = tokens[0] ?? '';
     const secondToken = tokens[1] ?? '';
-    const lastToken = tokens[tokens.length - 1] ?? '';
 
     if (!value) return this.setFullNameError('Please enter first and last name.');
     if (hasNumber) return this.setFullNameError('Name cannot contain numbers.');
     if (!hasFirstAndLast) return this.setFullNameError('Please enter first and last name.');
+
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+
+      if (token.includes('.')) {
+        continue;
+      }
+
+      if (!nameTokenRegex.test(token)) {
+        return this.setFullNameError('Name may only contain letters and one hyphen within a name part.');
+      }
+    }
 
     if (dottedTokens.length > 0) {
       if (tokens.length < 3) {
         return this.setFullNameError('Use abbreviations only as middle name, e.g. "Norman K. Pfalzer".');
       }
 
-      if (!dottedTokenRegex.test(secondToken) || !dottedTokens.every((token) => dottedTokenRegex.test(token))) {
-        return this.setFullNameError('Use abbreviations only as middle name, e.g. "Norman K. Pfalzer".');
-      }
-
-      if (dottedTokenRegex.test(firstToken) || dottedTokenRegex.test(lastToken)) {
+      if (dottedTokens.length !== 1 || secondToken !== dottedTokens[0] || !dottedTokenRegex.test(secondToken)) {
         return this.setFullNameError('Use abbreviations only as middle name, e.g. "Norman K. Pfalzer".');
       }
     }

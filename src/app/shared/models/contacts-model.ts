@@ -47,13 +47,14 @@ export class ContactsModel implements Contact {
 
   /**
    * Generates initials from the full name.
+   * Uses first and last name initials.
    * Falls back to repeating the first letter if only one name is present.
    * @returns Uppercase initials (e.g. "JD")
    */
   getInitials(): string {
     const parts = this.full_name.trim().split(/\s+/).filter(Boolean);
     const first = parts[0]?.charAt(0) || '';
-    const second = parts[1]?.charAt(0) || '';
-    return `${first}${second || first}`.toUpperCase();
+    const last = parts[parts.length - 1]?.charAt(0) || '';
+    return `${first}${last || first}`.toUpperCase();
   }
 }
