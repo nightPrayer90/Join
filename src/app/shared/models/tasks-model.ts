@@ -143,6 +143,10 @@ export class TasksModel {
     return count;
   }
 
+  getSubtasksCount(): number {
+    return this.subtasks.length;
+  }
+
   // dateHandling ---------------------------------------------------------------------------------
   get date(): Date {
     return new Date(this._date);
