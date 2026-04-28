@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
   padding: 20px 18px 16px 18px;
   background: #ffffff;
   border-radius: 24px;
@@ -47,6 +48,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .task-title {
@@ -55,6 +57,7 @@
   font-weight: 700;
   line-height: 1.25;
   color: #2a3647;
+  overflow-wrap: anywhere;
 }
 
 .task-description {
@@ -63,6 +66,7 @@
   font-weight: 400;
   line-height: 1.3;
   color: #a8a8a8;
+  overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
