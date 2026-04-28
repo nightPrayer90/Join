@@ -63,6 +63,12 @@ h1 {
   color: $color-text;
 }
 
+.field-error {
+  margin: -18px 0 18px;
+  font-size: 16px;
+  color: #ff3d00;
+}
+
 .required {
   color: #ff8190;
   margin-left: 2px;
@@ -87,7 +93,7 @@ textarea {
 .form-left input,
 .form-left textarea,
 .form-right > input,
-.select-field,
+.select-wrapper,
 .input-with-icon {
   margin-bottom: 24px;
 }
@@ -217,8 +223,204 @@ textarea {
   color: #ffffff;
 }
 
+.select-wrapper {
+  position: relative;
+}
+
 .select-field {
   @include input-wrapper;
+  margin-bottom: 0;
+
+  input {
+    margin: 0;
+    padding-right: 52px;
+  }
+
+  &.open input {
+    border-color: $color-accent;
+  }
+
+  &.invalid input {
+    border-color: #ff3d00;
+  }
+}
+
+.select-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: center;
+  pointer-events: none;
+  transition: transform 100ms ease-in-out;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  path {
+    fill: none;
+    stroke: $color-primary;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.select-field.open .select-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.select-dropdown {
+  margin-top: 6px;
+  background: $color-bg-surface;
+  border-radius: 12px;
+  border: 1px solid #d1d1d1;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 14px 8px 8px;
+  z-index: 6;
+  position: absolute;
+  inset: calc(100% - 2px) 0 auto 0;
+}
+
+.assigned-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f2f2f2;
+  }
+
+}
+
+.assigned-user {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.assigned-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.assigned-name {
+  font-size: 20px;
+  color: $color-text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.assigned-checkbox {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.assigned-check {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-right: 6px;
+}
+
+.check-icon {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon.checked {
+  display: none;
+}
+
+.check-mark {
+  position: absolute;
+  top: 0;
+  left: 3px;
+}
+
+.assigned-checkbox:checked ~ .check-icon.unchecked {
+  display: none;
+}
+
+.assigned-checkbox:checked ~ .check-icon.checked {
+  display: inline-flex;
+}
+
+.assigned-selected-list {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -8px 0 18px;
+}
+
+.assigned-selected-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+.category-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 12px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  color: $color-text;
+
+  &:hover {
+    background: #f2f2f2;
+  }
+}
+
+.subtask-input-wrap {
+  @include input-wrapper;
+  margin-bottom: 12px;
 
   input {
     margin: 0;
@@ -226,15 +428,150 @@ textarea {
   }
 }
 
-.select-arrow {
+.subtask-add-btn {
   position: absolute;
-  right: 16px;
   top: 50%;
+  right: 14px;
   transform: translateY(-50%);
-  color: $color-primary;
-  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
   line-height: 1;
-  pointer-events: none;
+  color: $color-primary;
+  cursor: pointer;
+}
+
+.subtask-actions {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.subtask-action-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: $color-primary;
+  font-size: 26px;
+  font-weight: $font-weight-regular;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.subtask-action-divider {
+  width: 1px;
+  height: 24px;
+  background: #d1d1d1;
+}
+
+.subtask-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    color: $color-text;
+    padding: 6px 16px;
+    border-radius: 10px;
+    min-height: 40px;
+    transition: background-color 100ms ease-in-out;
+
+    &:hover {
+      background: #eeeeee;
+
+      .subtask-item-actions {
+        opacity: 1;
+      }
+    }
+  }
+
+  .subtask-title {
+    font-size: 16px;
+    font-weight: $font-weight-regular;
+    line-height: 1.2;
+    color: #000000;
+  }
+}
+
+.subtask-item-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+}
+
+.subtask-item-actions.show {
+  opacity: 1;
+}
+
+.subtask-edit-wrap {
+  flex: 1;
+  min-width: 0;
+
+  input {
+    width: 100%;
+    height: 32px;
+    border: none;
+    border-bottom: 1px solid $color-accent;
+    border-radius: 0;
+    padding: 0 2px;
+    font-size: 16px;
+    line-height: 1.2;
+    background: transparent;
+    color: #000;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent;
+    }
+  }
+}
+
+.subtask-edit-actions .subtask-item-btn {
+  font-size: 24px;
+  color: $color-primary;
+}
+
+.subtask-item-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    display: block;
+  }
+}
+
+.subtask-item-divider {
+  width: 1px;
+  height: 24px;
+  background: #d1d1d1;
 }
 
 .form-footer {
@@ -306,7 +643,29 @@ textarea {
 }
 
 .task-toast {
-  display: none;
+  position: fixed;
+  right: 40px;
+  bottom: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  background: $color-primary;
+  color: #fff;
+  padding: 24px 32px;
+  border-radius: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+  transform: translateX(140%);
+  transition: transform 180ms ease-in-out;
+  font-size: 20px;
+  z-index: 20;
+}
+
+.task-toast.show {
+  transform: translateX(0);
+}
+
+.toast-icon {
+  font-size: 28px;
 }
 
 @include notebook {

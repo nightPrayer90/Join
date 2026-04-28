@@ -354,7 +354,7 @@ export class Supabase {
     const { data, error } = await this.supabase.from('tasks').insert(task_data).select('id').single();
 
     if (error || !data) {
-      console.log('The task could not be added!'); // TODO: errorHandling
+      console.log('The task could not be added!', error); // TODO: errorHandling
       return null;
     }
     return data.id;
@@ -383,3 +383,4 @@ export class Supabase {
   }
   //#endregion
 }
+
