@@ -1,0 +1,152 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 18px 16px 18px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #29abe2;
+    outline-offset: 2px;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.category-badge {
+  align-self: flex-start;
+  padding: 4px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+
+  &.category-user-story {
+    background: #0038ff;
+  }
+
+  &.category-technical-task {
+    background: #1fd7c1;
+  }
+}
+
+.task-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #2a3647;
+}
+
+.task-description {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #a8a8a8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: clip;
+}
+
+.subtasks-progress {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 8px;
+  background: #f4f4f4;
+  border-radius: 4px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #4589ff;
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.progress-label {
+  font-size: 16px;
+  font-weight: 400;
+  color: #2a3647;
+  white-space: nowrap;
+}
+
+.task-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.assignee-stack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.assignee {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  background: #2a3647;
+  margin-left: -8px;
+
+  &:first-child {
+    margin-left: 0;
+  }
+
+  span {
+    transform: translateY(0.5px);
+  }
+
+  &.assignee-overflow {
+    background: #2a3647;
+  }
+}
+
+.priority-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+
+  svg {
+    display: block;
+  }
+}

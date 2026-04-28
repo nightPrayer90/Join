@@ -1,0 +1,57 @@
+<span
+  class="category-badge"
+  [class.category-user-story]="task.category === 'User Story'"
+  [class.category-technical-task]="task.category === 'Technical Task'"
+>{{ task.category }}</span>
+
+<div class="task-text">
+  <h3 class="task-title">{{ task.title }}</h3>
+  <p class="task-description">{{ task.description }}</p>
+</div>
+
+@if (totalSubtasks > 0) {
+  <div class="subtasks-progress" aria-label="Subtask progress">
+    <div class="progress-track" [attr.aria-valuenow]="doneSubtasks" [attr.aria-valuemax]="totalSubtasks" role="progressbar">
+      <div class="progress-fill" [style.width.%]="progressPercent"></div>
+    </div>
+    <span class="progress-label">{{ doneSubtasks }}/{{ totalSubtasks }} Subtasks</span>
+  </div>
+}
+
+<footer class="task-footer">
+  <ul class="assignee-stack" aria-label="Assigned to">
+    @for (a of visibleAssignees; track a.initials + a.fullName) {
+      <li class="assignee" [style.background-color]="a.color" [title]="a.fullName">
+        <span>{{ a.initials }}</span>
+      </li>
+    }
+    @if (hiddenAssigneesCount > 0) {
+      <li class="assignee assignee-overflow" title="More assignees">
+        <span>+{{ hiddenAssigneesCount }}</span>
+      </li>
+    }
+  </ul>
+
+  <span class="priority-icon" [attr.aria-label]="'Priority ' + task.priority">
+    @switch (task.priority) {
+      @case ('urgent') {
+        <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M20 14L11 5L2 14" stroke="#FF3D00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 9L11 0L2 9" stroke="#FF3D00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      }
+      @case ('medium') {
+        <svg width="22" height="10" viewBox="0 0 22 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect y="0" width="22" height="3" rx="1.5" fill="#FFA800"/>
+          <rect y="7" width="22" height="3" rx="1.5" fill="#FFA800"/>
+        </svg>
+      }
+      @case ('low') {
+        <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M2 2L11 11L20 2" stroke="#7AE229" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 7L11 16L20 7" stroke="#7AE229" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      }
+    }
+  </span>
+</footer>
