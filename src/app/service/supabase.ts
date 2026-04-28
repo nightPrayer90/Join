@@ -2,6 +2,8 @@ import { Injectable, signal, computed } from '@angular/core';
 import { createClient, RealtimeChannel, Session, User } from '@supabase/supabase-js';
 import { Contact } from '../shared/interface/contact-interface';
 import { ContactsModel } from '../shared/models/contacts-model';
+import { TasksModel } from '../shared/models/tasks-model';
+import { Tasks } from '../shared/interface/tasks-interface';
 
 @Injectable({
   providedIn: 'root',
@@ -13,21 +15,19 @@ export class Supabase {
   channelInsert: RealtimeChannel | undefined;
   channelUpdate: RealtimeChannel | undefined;
   channelDelete: RealtimeChannel | undefined;
+  channelTaskInsert: RealtimeChannel | undefined;
+  channelTaskUpdate: RealtimeChannel | undefined;
+  channelTaskDelete: RealtimeChannel | undefined;
 
   //#region SIGNALS -------------------------------------------------------------------------------
-  /**
-   * Holds the currently authenticated user from the database.
-   */
+
+  // * Holds the currently authenticated user from the database.
   user = signal<User | null>(null);
 
-  /**
-   * Reactive list of all contacts loaded from the "contacts" database table.
-   */
+  //   * Reactive list of all contacts loaded from the "contacts" database table.
   contactsList = signal<ContactsModel[]>([]);
 
-  /**
-   * Stores the id of the contact used to control the detail view selection.
-   */
+  //   * Stores the id of the contact used to control the detail view selection.
   contactDetailsId = signal<number | null>(null);
 
   /**
@@ -39,6 +39,28 @@ export class Supabase {
     if (!id) return null;
 
     const list = this.contactsList();
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === id) {
+        return list[i];
+      }
+    }
+    return null;
+  });
+
+  tasksList = signal<TasksModel[]>([]);
+
+  // Stores the id of the task used to control the detail view selection.
+  taskDetailsId = signal<number | null>(null);
+
+  /**
+   * Computed signal that returns the selected task based on taskDetailsId.
+   * Resolves the task from tasksList or null if not found.
+   */
+  taskDetails = computed<TasksModel | null>(() => {
+    const id = this.taskDetailsId();
+    if (!id) return null;
+
+    const list = this.tasksList();
     for (let i = 0; i < list.length; i++) {
       if (list[i].id === id) {
         return list[i];
@@ -59,12 +81,18 @@ export class Supabase {
     this.subscribeInsert();
     this.subscribeUpdate();
     this.subscribeDelete();
+    this.subscribeTaskInsert();
+    this.subscribeTaskUpdate();
+    this.subscribeTaskDelete();
   }
 
   ngOnDestroy() {
     if (this.channelInsert) this.supabase.removeChannel(this.channelInsert);
     if (this.channelUpdate) this.supabase.removeChannel(this.channelUpdate);
     if (this.channelDelete) this.supabase.removeChannel(this.channelDelete);
+    if (this.channelTaskInsert) this.supabase.removeChannel(this.channelTaskInsert);
+    if (this.channelTaskUpdate) this.supabase.removeChannel(this.channelTaskUpdate);
+    if (this.channelTaskDelete) this.supabase.removeChannel(this.channelTaskDelete);
   }
 
   //#region SERVICE INIT -------------------------------------------------------------------------
@@ -88,6 +116,7 @@ export class Supabase {
   private initUserIsLoggedIn(session: Session): void {
     this.user.set(session.user);
     this.getContacts();
+    this.getTasks;
   }
 
   /**
@@ -96,6 +125,7 @@ export class Supabase {
   private initUserIsGuest(): void {
     this.user.set(null);
     this.getContacts();
+    this.getTasks();
   }
 
   /**
@@ -155,6 +185,48 @@ export class Supabase {
           this.contactsList.update((list) => list.filter((contact) => contact.id !== deleteId));
         },
       )
+      .subscribe();
+  }
+
+  /**
+   * Subscribes to INSERT events - Adds new tasks to the local tasks list.
+   */
+  private subscribeTaskInsert() {
+    this.channelInsert = this.supabase
+      .channel('tasks-insert')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, (payload) => {
+        this.tasksList.update((list) => [...list, new TasksModel(payload.new as Tasks)]);
+      })
+      .subscribe();
+  }
+
+  /**
+   * Subscribes to INSERT events - Adds new tasks to the local tasks list.
+   */
+  private subscribeTaskUpdate() {
+    this.channelUpdate = this.supabase
+      .channel('tasks-update')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, (payload) => {
+        const updated = payload.new as Tasks;
+
+        this.tasksList.update((list) =>
+          list.map((task) => (task.id === updated.id ? new TasksModel(updated) : task)),
+        );
+      })
+      .subscribe();
+  }
+
+  /**
+   * Subscribes to DELETE events - Removes the deleted task from the local tasks list.
+   */
+  private subscribeTaskDelete() {
+    this.channelDelete = this.supabase
+      .channel('tasks-delete')
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tasks' }, (payload) => {
+        const deleteId = payload.old['id'];
+
+        this.tasksList.update((list) => list.filter((task) => task.id !== deleteId));
+      })
       .subscribe();
   }
   //#endregion
@@ -304,6 +376,62 @@ export class Supabase {
     const { data, error } = await this.supabase.from('contacts').delete().eq('id', id);
 
     if (error) console.log('The contact could not be deleted'); //TODO: errorHandling
+  }
+  //#endregion
+  //#region TASKS DATA ----------------------------------------------------------------------------
+  async getTasks() {
+    const tasksModel: TasksModel[] = [];
+    const { data, error } = (await this.supabase.from('tasks').select('*')) as {
+      data: Tasks[] | null;
+      error: any;
+    };
+
+    if (error || data === null) {
+      console.log('tasks could not be loaded!');
+      return; // TODO: Errorhandling
+    }
+    for (let i = 0; i < data.length; i++) {
+      tasksModel.push(new TasksModel(data[i]));
+    }
+    this.tasksList.set(tasksModel);
+  }
+
+  getTaskDetails(id: number | null) {
+    this.taskDetailsId.set(id);
+  }
+
+  async addTask(task: TasksModel): Promise<number | null> {
+    const task_data = task.getCleanAddJson();
+
+    const { data, error } = await this.supabase
+      .from('tasks')
+      .insert(task_data)
+      .select('id')
+      .single();
+
+    if (error || !data) {
+      console.log('The task could not be added!'); // TODO: errorHandling
+      return null;
+    }
+
+    return data.id;
+  }
+
+  async updateTask(task: TasksModel): Promise<void> {
+    const task_data = task.getCleanUpdateJson();
+    const { data, error } = await this.supabase.from('tasks').update(task_data).eq('id', task.id);
+
+    if (error) {
+      console.log('The task could not be updated!');
+    }
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    const { data, error } = await this.supabase.from('tasks').delete().eq('id', id);
+
+    if (error) {
+      console.log('The task could not be deleted'); // TODO: errorHandling
+    }
   }
   //#endregion
 }
