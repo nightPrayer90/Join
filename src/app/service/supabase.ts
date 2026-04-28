@@ -36,7 +36,7 @@ export class Supabase {
    */
   contactDetails = computed<ContactsModel | null>(() => {
     const id = this.contactDetailsId();
-    if (!id) return null;
+    if (id === null) return null;
 
     const list = this.contactsList();
     for (let i = 0; i < list.length; i++) {
@@ -58,7 +58,7 @@ export class Supabase {
    */
   taskDetails = computed<TasksModel | null>(() => {
     const id = this.taskDetailsId();
-    if (!id) return null;
+    if (id === null) return null;
 
     const list = this.tasksList();
     for (let i = 0; i < list.length; i++) {

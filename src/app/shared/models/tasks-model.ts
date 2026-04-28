@@ -1,58 +1,57 @@
-import { Member, Subtask, Tasks } from '../interface/tasks-interface';
+import { Subtask, Tasks } from '../interface/tasks-interface';
 
 /**
- * TaskModel
- * -----------------------------------------------------------------------------
- * This model represents a Task inside the application and acts as a wrapper
- * around the raw data coming from Supabase.
+ * Represents a single task entity used in the application.
  *
- * DATA HANDLING
- * -----------------------------------------------------------------------------
- * - The database (Supabase) stores the date as an ISO string.
- * - Internally, this model ALSO stores the date as a string (`_date`).
- * - Externally, you always work with a native JavaScript `Date` object.
+ * This model acts as a wrapper around raw database data (e.g. from Supabase)
+ * and provides helper methods for safe data handling and manipulation.
  *
- * This is handled via getter/setter:
- *    - `task.date`        → returns a `Date`
- *    - `task.date = Date` → automatically converts to ISO string
- *    - `task.dateISO`     → gives you the raw string for DB operations
+ * ---------------------------------------------------------------------------
+ * DATE HANDLING
+ * ---------------------------------------------------------------------------
+ * - Internally, the date is stored as an ISO string (`_date`)
+ * - Externally, the date is exposed as a native JavaScript `Date` object
  *
+ * Access patterns:
+ * - `task.date`        → returns a `Date`
+ * - `task.date = Date` → converts to ISO string automatically
+ * - `task.dateISO`     → raw string for database usage
  *
+ * ---------------------------------------------------------------------------
  * INITIALIZATION
- * -----------------------------------------------------------------------------
- * You can create a task with partial data (e.g. from Supabase):  Missing values will be filled with safe defaults.
- *    const task = new TaskModel(dataFromDB);
+ * ---------------------------------------------------------------------------
+ * The constructor accepts partial task data (e.g. from database responses).
+ * Missing values are automatically filled with default values.
  *
+ * @example
+ * const task = new TasksModel(dataFromDB);
+ *
+ * ---------------------------------------------------------------------------
  * USAGE EXAMPLES
- * -----------------------------------------------------------------------------
- * // Access date as real Date object
+ * ---------------------------------------------------------------------------
+ * @example
+ * // Access date
  * console.log(task.date);
  *
- * // Set a new date
+ * @example
+ * // Set date
  * task.date = new Date();
  *
- * // Get ISO string for saving to Supabase
+ * @example
+ * // Get ISO string for database
  * console.log(task.dateISO);
  *
- * // Work with subtasks
- * console.log(task.completedSubtasks);
- *
- *
- * IMPORTANT NOTES
- * -----------------------------------------------------------------------------
- * - Never access `_date` directly outside this class!
- * - Always use `date` (getter/setter) for working with dates.
- * - Use `dateISO` when sending data back to Supabase.
- *
+ * @example
+ * // Count completed subtasks
+ * console.log(task.getCompletedSubtasks());
  */
-
 export class TasksModel {
   id: number;
   title: string;
   description: string;
   private _date: string;
   priority: number;
-  member: Member[];
+  member: number[];
   category: string;
   subtasks: Subtask[];
 
@@ -67,6 +66,10 @@ export class TasksModel {
     this.subtasks = data.subtasks ?? [];
   }
 
+  /**
+   * Returns a clean JSON object for creating a task in the database.
+   * @returns {object} Task payload for insert operations
+   */
   getCleanAddJson() {
     return {
       title: this.title,
@@ -79,27 +82,62 @@ export class TasksModel {
     };
   }
 
+  /**
+   * Returns a clean JSON object for updating a task in the database.
+   * @returns {object} Task payload for update operations
+   */
   getCleanUpdateJson() {
-    return {
-      title: this.title,
-      description: this.description,
-      date: this.dateISO,
-      priority: this.priority,
-      member: this.member,
-      category: this.category,
-      subtasks: this.subtasks,
-    };
+    return this.getCleanAddJson();
   }
 
-  // subtask handling -----------------------------------------------------------------------------
-  addSubtask(title: string) {
+  //#region MEMBER HANDLING -----------------------------------------------------------------------
+  /**
+   * Adds a member to the task if not already assigned.
+   * @param {number} contactId Member ID
+   */
+  addMember(contactId: number) {
+    if (!this.hasMember(contactId)) this.member.push(contactId);
+  }
+
+  /**
+   * Removes a member from the task.
+   * @param {number} contactId Member ID
+   */
+  deleteMember(contactId: number) {
+    for (let i = 0; i < this.member.length; i++) {
+      if (this.member[i] === contactId) {
+        this.member.splice(i, 1);
+        return;
+      }
+    }
+  }
+
+  /**
+   * Checks if a member is assigned to the task.
+   * @param {number} contactId Member ID
+   * @returns {boolean}
+   */
+  hasMember(contactId: number): boolean {
+    return this.member.includes(contactId);
+  }
+  //#endregion ------------------------------------------------------------------------------------
+  //#region SUBTASK HANDLING-----------------------------------------------------------------------
+  /**
+   * Adds a new subtask.
+   * @param {string} title Subtask title
+   */
+  addSubtask(title: string, isDone: boolean = false) {
     this.subtasks.push({
       id: this.getNextSubtaskId(),
       title,
-      done: false,
+      done: isDone,
     });
   }
 
+  /**
+   * Removes a subtask by ID.
+   * @param {number} id Subtask ID
+   */
   removeSubtask(id: number) {
     for (let i = 0; i < this.subtasks.length; i++) {
       if (this.subtasks[i].id === id) {
@@ -108,59 +146,130 @@ export class TasksModel {
       }
     }
   }
+
+  /**
+   * Updates the title of a subtask.
+   *
+   * @param {number} id Subtask ID
+   * @param {string} title New title
+   */
   updateSubtaskTitle(id: number, title: string) {
     const subtask = this.findSubtask(id);
     if (!subtask) return;
     subtask.title = title;
   }
 
-  updateSubtaskDone(id: number, done: boolean) {
+  /**
+   * Updates the completion state of a subtask.
+   *
+   * @param {number} id Subtask ID
+   * @param {boolean} isDone Completion state
+   */
+  updateSubtaskDone(id: number, isDone: boolean) {
     const subtask = this.findSubtask(id);
     if (!subtask) return;
-    subtask.done = done;
+    subtask.done = isDone;
   }
 
-  private findSubtask(id: number): Subtask | undefined {
+  /**
+   * Updates subtask.
+   *
+   * @param {number} id Subtask ID
+   * @param {string} title New title
+   * @param {boolean} isDone Completion state
+   */
+  updateSubtask(id: number, title: string, isDone: boolean) {
+    const subtask = this.findSubtask(id);
+    if (!subtask) return;
+    subtask.title = title;
+    subtask.done = isDone;
+  }
+
+  /**
+   * Returns the number of completed subtasks.
+   *
+   * @returns {number}
+   */
+  getCompletedSubtasks(): number {
+    let count = 0;
+    for (let i = 0; i < this.subtasks.length; i++) {
+      if (this.subtasks[i].done) count++;
+    }
+    return count;
+  }
+
+  /**
+   * Returns the total number of subtasks.
+   *
+   * @returns {number}
+   */
+  getSubtasksCount(): number {
+    return this.subtasks.length;
+  }
+
+  /**
+   * Finds a subtask by ID.
+   *
+   * @private
+   * @param {number} id Subtask ID
+   * @returns {Subtask | null}
+   */
+  private findSubtask(id: number): Subtask | null {
     for (let i = 0; i < this.subtasks.length; i++) {
       if (this.subtasks[i].id === id) return this.subtasks[i];
     }
-    return undefined;
+    return null;
   }
 
-  private getNextSubtaskId(): number {
+  /**
+   * Generates the next subtask ID.
+   *
+   * @private
+   * @returns {number}
+   */
+ private getNextSubtaskId(): number {
     let maxId = 0;
     for (let i = 0; i < this.subtasks.length; i++) {
       if (this.subtasks[i].id > maxId) maxId = this.subtasks[i].id;
     }
     return maxId + 1;
   }
-
-  getCompletedSubtasks(): number {
-    let count = 0;
-    for (const subtask of this.subtasks) {
-      if (subtask.done) count++;
-    }
-    return count;
-  }
-
-  getSubtasksCount(): number {
-    return this.subtasks.length;
-  }
-
-  // dateHandling ---------------------------------------------------------------------------------
+  //#endregion ------------------------------------------------------------------------------------ 
+//#region DATE HANDLING ---------------------------------------------------------------------------
+   /**
+   * Returns the task date as a JavaScript Date object.
+   *
+   * @returns {Date}
+   */
   get date(): Date {
     return new Date(this._date);
   }
 
+  /**
+   * Sets the task date (automatically converts to ISO string).
+   *
+   * @param {Date} value
+   */
   set date(value: Date) {
     this._date = value.toISOString();
   }
 
+  /**
+   * Returns the raw ISO date string.
+   *
+   * @returns {string}
+   */
   get dateISO(): string {
     return this._date;
   }
 
+  /**
+   * Checks whether the task is overdue.
+   *
+   * @returns {boolean}
+   */
   isOverdue(): boolean {
     return this.date < new Date();
   }
+  //#endregion
 }
