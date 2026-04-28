@@ -1,0 +1,382 @@
+@use '../../../styles/colors' as *;
+@use '../../../styles/typography' as *;
+@use '../../../styles/buttons' as *;
+@use '../../../styles/inputs' as *;
+@use '../../../styles/breakpoints' as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.add-task-page {
+  min-height: calc(100vh - 96px);
+  padding: 132px 100px 28px;
+  background: $color-bg-page;
+  box-sizing: border-box;
+  font-family: $font-family-base;
+  color: $color-text;
+}
+
+.add-task-container {
+  width: 100%;
+  max-width: 1118px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 44px;
+  font-size: 61px;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+  color: #000;
+}
+
+.task-form {
+  margin: 0;
+}
+
+.form-columns {
+  display: grid;
+  grid-template-columns: minmax(320px, 440px) 1px minmax(320px, 440px);
+  gap: 48px;
+  align-items: start;
+}
+
+.form-left,
+.form-right {
+  width: 100%;
+}
+
+.form-divider {
+  width: 1px;
+  min-height: 424px;
+  background: #d1d1d1;
+}
+
+.field-label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: $font-weight-regular;
+  line-height: 1.2;
+  color: $color-text;
+}
+
+.required {
+  color: #ff8190;
+  margin-left: 2px;
+}
+
+input,
+textarea {
+  @include input-field;
+}
+
+input[readonly] {
+  cursor: pointer;
+}
+
+textarea {
+  min-height: 120px;
+  max-height: 180px;
+  padding-top: 18px;
+  resize: vertical;
+}
+
+.form-left input,
+.form-left textarea,
+.form-right > input,
+.select-field,
+.input-with-icon {
+  margin-bottom: 24px;
+}
+
+.input-with-icon {
+  @include input-wrapper;
+  margin-bottom: 0;
+
+  input {
+    margin: 0;
+    padding-right: 54px;
+  }
+}
+
+.field-icon-btn {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.priority-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.priority-option {
+  position: relative;
+  display: block;
+  width: 100%;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.priority-btn {
+  @include btn-base;
+  justify-content: center;
+  width: 100%;
+  height: 56px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  background: $color-bg-surface;
+  color: #000;
+  font-size: 20px;
+  font-weight: $font-weight-regular;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+
+  .priority-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: currentColor;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  }
+
+}
+
+.priority-btn--urgent {
+  .priority-icon {
+    color: #ff3d00;
+  }
+}
+
+.priority-btn--medium {
+  .priority-icon {
+    color: #ffa800;
+  }
+}
+
+.priority-btn--low {
+  .priority-icon {
+    color: #7ae229;
+  }
+}
+
+.priority-option input:focus-visible + .priority-btn {
+  outline: none;
+  border-color: #ececec;
+}
+
+.priority-option input:checked + .priority-btn {
+  color: #ffffff;
+  border-color: transparent;
+  font-weight: $font-weight-bold;
+  font-size: 21px;
+  box-shadow: none;
+}
+
+.priority-option input:checked + .priority-btn--urgent {
+  background: #ff3d00;
+}
+
+.priority-option input:checked + .priority-btn--medium {
+  background: #ffa800;
+}
+
+.priority-option input:checked + .priority-btn--low {
+  background: #7ae229;
+}
+
+.priority-option input:checked + .priority-btn .priority-icon {
+  color: #ffffff;
+}
+
+.select-field {
+  @include input-wrapper;
+
+  input {
+    margin: 0;
+    padding-right: 52px;
+  }
+}
+
+.select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $color-primary;
+  font-size: 20px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.form-footer {
+  margin-top: 76px;
+  display: grid;
+  grid-template-columns: minmax(320px, 440px) 1px minmax(320px, 440px);
+  column-gap: 48px;
+  align-items: end;
+}
+
+.required-note {
+  grid-column: 1;
+  margin: 0;
+  min-height: 24px;
+  font-size: 20px;
+  font-weight: $font-weight-regular;
+  line-height: 1.2;
+  color: #000;
+
+  .required {
+    margin-right: 2px;
+    margin-left: 0;
+  }
+}
+
+.footer-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.task-btn-secondary,
+.task-btn-primary {
+  height: 56px;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.task-btn-secondary {
+  @include btn-secondary;
+  font-weight: $font-weight-regular;
+}
+
+.task-btn-primary {
+  @include btn-primary;
+  font-weight: $font-weight-bold;
+  font-size: 21px;
+  background: $color-primary;
+  border-color: $color-primary;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-accent;
+    border-color: $color-accent;
+  }
+}
+
+.btn-close,
+.btn-check {
+  font-size: 28px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  font-weight: $font-weight-regular;
+}
+
+.task-toast {
+  display: none;
+}
+
+@include notebook {
+  .add-task-page {
+    padding: 110px 32px 24px;
+  }
+
+  .form-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-divider {
+    display: none;
+  }
+
+  .form-right {
+    margin-top: 8px;
+  }
+
+  .form-footer {
+    margin-top: 36px;
+    flex-direction: column;
+    align-items: flex-start;
+    display: flex;
+  }
+
+  .footer-actions {
+    align-self: flex-end;
+  }
+}
+
+@include tablet {
+  .add-task-page {
+    padding: 98px 20px 24px;
+  }
+
+  h1 {
+    font-size: 47px;
+    margin-bottom: 24px;
+  }
+
+  .field-label {
+    font-size: 20px;
+  }
+
+  .priority-btn {
+    font-size: 20px;
+  }
+
+  .task-btn-secondary,
+  .task-btn-primary {
+    font-size: 20px;
+  }
+}
+
+@include mobile {
+  .priority-row {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .task-btn-secondary,
+  .task-btn-primary {
+    font-size: 20px;
+    padding: 10px 14px;
+  }
+}
