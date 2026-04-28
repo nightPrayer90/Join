@@ -70,7 +70,7 @@ export class TasksModel {
    * Returns a clean JSON object for creating a task in the database.
    * @returns {object} Task payload for insert operations
    */
-  getCleanAddJson() {
+  getCleanAddJson(): object {
     return {
       title: this.title,
       description: this.description,
@@ -86,7 +86,7 @@ export class TasksModel {
    * Returns a clean JSON object for updating a task in the database.
    * @returns {object} Task payload for update operations
    */
-  getCleanUpdateJson() {
+  getCleanUpdateJson(): object {
     return this.getCleanAddJson();
   }
 
@@ -95,7 +95,7 @@ export class TasksModel {
    * Adds a member to the task if not already assigned.
    * @param {number} contactId Member ID
    */
-  addMember(contactId: number) {
+  addMember(contactId: number): void {
     if (!this.hasMember(contactId)) this.member.push(contactId);
   }
 
@@ -103,7 +103,7 @@ export class TasksModel {
    * Removes a member from the task.
    * @param {number} contactId Member ID
    */
-  deleteMember(contactId: number) {
+  deleteMember(contactId: number): void {
     for (let i = 0; i < this.member.length; i++) {
       if (this.member[i] === contactId) {
         this.member.splice(i, 1);
@@ -121,6 +121,7 @@ export class TasksModel {
     return this.member.includes(contactId);
   }
   //#endregion ------------------------------------------------------------------------------------
+
   //#region SUBTASK HANDLING-----------------------------------------------------------------------
   /**
    * Adds a new subtask.
@@ -149,7 +150,6 @@ export class TasksModel {
 
   /**
    * Updates the title of a subtask.
-   *
    * @param {number} id Subtask ID
    * @param {string} title New title
    */
@@ -161,7 +161,6 @@ export class TasksModel {
 
   /**
    * Updates the completion state of a subtask.
-   *
    * @param {number} id Subtask ID
    * @param {boolean} isDone Completion state
    */
@@ -173,7 +172,6 @@ export class TasksModel {
 
   /**
    * Updates subtask.
-   *
    * @param {number} id Subtask ID
    * @param {string} title New title
    * @param {boolean} isDone Completion state
@@ -187,7 +185,6 @@ export class TasksModel {
 
   /**
    * Returns the number of completed subtasks.
-   *
    * @returns {number}
    */
   getCompletedSubtasks(): number {
@@ -200,7 +197,6 @@ export class TasksModel {
 
   /**
    * Returns the total number of subtasks.
-   *
    * @returns {number}
    */
   getSubtasksCount(): number {
@@ -209,8 +205,6 @@ export class TasksModel {
 
   /**
    * Finds a subtask by ID.
-   *
-   * @private
    * @param {number} id Subtask ID
    * @returns {Subtask | null}
    */
@@ -223,22 +217,20 @@ export class TasksModel {
 
   /**
    * Generates the next subtask ID.
-   *
-   * @private
    * @returns {number}
    */
- private getNextSubtaskId(): number {
+  private getNextSubtaskId(): number {
     let maxId = 0;
     for (let i = 0; i < this.subtasks.length; i++) {
       if (this.subtasks[i].id > maxId) maxId = this.subtasks[i].id;
     }
     return maxId + 1;
   }
-  //#endregion ------------------------------------------------------------------------------------ 
-//#region DATE HANDLING ---------------------------------------------------------------------------
-   /**
+  //#endregion ------------------------------------------------------------------------------------
+
+  //#region DATE HANDLING ---------------------------------------------------------------------------
+  /**
    * Returns the task date as a JavaScript Date object.
-   *
    * @returns {Date}
    */
   get date(): Date {
@@ -247,7 +239,6 @@ export class TasksModel {
 
   /**
    * Sets the task date (automatically converts to ISO string).
-   *
    * @param {Date} value
    */
   set date(value: Date) {
@@ -256,7 +247,6 @@ export class TasksModel {
 
   /**
    * Returns the raw ISO date string.
-   *
    * @returns {string}
    */
   get dateISO(): string {
@@ -265,7 +255,6 @@ export class TasksModel {
 
   /**
    * Checks whether the task is overdue.
-   *
    * @returns {boolean}
    */
   isOverdue(): boolean {

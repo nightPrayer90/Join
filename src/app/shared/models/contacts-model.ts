@@ -23,8 +23,9 @@ export class ContactsModel implements Contact {
 
   /**
    * Returns a cleaned JSON object for creating a new contact in the database.
+   * @returns {object} Task payload for insert operations
    */
-  getCleanAddJson() {
+  getCleanAddJson(): object {
     return {
       full_name: this.full_name,
       email: this.email,
@@ -36,8 +37,9 @@ export class ContactsModel implements Contact {
 
   /**
    * Returns a cleaned JSON object for updating an existing contact in the database.
+   * @returns {object} Task payload for update operations
    */
-  getCleanUpdateJson() {
+  getCleanUpdateJson(): object {
     return {
       full_name: this.full_name,
       email: this.email,
