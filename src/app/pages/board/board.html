@@ -21,7 +21,7 @@
         </span>
       </div>
 
-      <button type="button" class="add-task-btn">
+      <button type="button" class="add-task-btn" (click)="openAddDialog('todo')">
         <span>Add task</span>
         <span class="plus" aria-hidden="true">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -47,6 +47,7 @@
             type="button"
             class="add-column-btn"
             [attr.aria-label]="'Add task to ' + col.title"
+            (click)="openAddDialog(col.key)"
           >
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <rect x="0.5" y="0.5" width="21" height="21" rx="5.5" stroke="#2A3647"/>
@@ -59,7 +60,10 @@
           <div class="empty-slot">No tasks {{ col.title }}</div>
         } @else {
           <div class="column-cards">
-            @for (task of tasksByStatus(col.key); track task.id) {
+            @for (task of tasksByStatus(col.key); track task.id; let i = $index) {
+              @if (dropTarget()?.column === col.key && dropTarget()?.index === i && draggingTaskId() !== task.id) {
+                <div class="drop-indicator"></div>
+              }
               <app-task-card
                 class="board-card"
                 [class.is-dragging]="draggingTaskId() === task.id"
@@ -68,7 +72,11 @@
                 draggable="true"
                 (dragstart)="onDragStart($event, task.id)"
                 (dragend)="onDragEnd()"
+                (dragover)="onCardDragOver($event, col.key, i)"
               />
+            }
+            @if (dropTarget()?.column === col.key && dropTarget()?.index === tasksByStatus(col.key).length) {
+              <div class="drop-indicator"></div>
             }
           </div>
         }
@@ -78,5 +86,18 @@
 </section>
 
 @if (selectedTask(); as task) {
-  <app-task-detail-dialog [task]="task" (close)="closeDialog()" />
+  <app-task-detail-dialog
+    [task]="task"
+    (close)="closeDialog()"
+    (subtaskToggle)="onSubtaskToggle($event.taskId, $event.subtaskId)"
+    (deleteTask)="onDeleteTask($event)"
+    (taskUpdated)="onTaskUpdated($event)"
+  />
+}
+
+@if (showAddDialog()) {
+  <app-board-add-task-dialog
+    [presetStatus]="addDialogStatus()"
+    (closed)="closeAddDialog()"
+  />
 }

@@ -3,6 +3,7 @@ export type BoardPriority = 'urgent' | 'medium' | 'low';
 export type BoardCategory = 'User Story' | 'Technical Task';
 
 export interface BoardSubtask {
+  id: number;
   title: string;
   done: boolean;
 }
@@ -21,8 +22,10 @@ export interface BoardTask {
   dueDate: string;
   priority: BoardPriority;
   assignees: BoardAssignee[];
+  memberIds: number[];
   subtasks: BoardSubtask[];
   status: BoardStatus;
+  sortOrder: number;
 }
 
 export interface BoardColumn {

@@ -7,6 +7,8 @@ export interface Tasks {
   member: number[];
   category: string;
   subtasks: Subtask[];
+  task_status: string;
+  sort_order: number;
 }
 
 export interface Subtask {

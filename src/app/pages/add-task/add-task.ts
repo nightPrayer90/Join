@@ -209,6 +209,8 @@ export class AddTask implements OnInit, OnDestroy {
     task.member = [...this.selectedMemberIds()];
     task.category = String(this.categoryId ?? '');
     task.subtasks = [...this.subtasks];
+    task.task_status = 'todo';
+    task.sort_order = 0;
     task.date = dueDate;
 
     const taskId = await this.dbService.addTask(task);

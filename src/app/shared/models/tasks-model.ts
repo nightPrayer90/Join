@@ -54,6 +54,8 @@ export class TasksModel {
   member: number[];
   category: string;
   subtasks: Subtask[];
+  task_status: string;
+  sort_order: number;
 
   constructor(data: Partial<Tasks> = {}) {
     this.id = data.id ?? -1;
@@ -64,6 +66,8 @@ export class TasksModel {
     this.member = data.member ?? [];
     this.category = data.category ?? 'general';
     this.subtasks = data.subtasks ?? [];
+    this.task_status = data.task_status ?? 'todo';
+    this.sort_order = data.sort_order ?? 0;
   }
 
   /**
@@ -79,6 +83,8 @@ export class TasksModel {
       member: this.member,
       category: this.category,
       subtasks: this.subtasks,
+      task_status: this.task_status,
+      sort_order: this.sort_order,
     };
   }
 

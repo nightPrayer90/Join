@@ -13,11 +13,13 @@ export const MOCK_TASKS: BoardTask[] = [
     dueDate: '10/05/2023',
     priority: 'medium',
     assignees: [ANTON, EMMANUEL, MARCEL],
+    memberIds: [],
     subtasks: [
-      { title: 'Implement Recipe Recommendation', done: true },
-      { title: 'Start Page Layout', done: false },
+      { id: 1, title: 'Implement Recipe Recommendation', done: true },
+      { id: 2, title: 'Start Page Layout', done: false },
     ],
     status: 'in-progress',
+    sortOrder: 0,
   },
   {
     id: 'html-base-template',
@@ -27,8 +29,10 @@ export const MOCK_TASKS: BoardTask[] = [
     dueDate: '12/05/2023',
     priority: 'low',
     assignees: [ANTON, EMMANUEL, MARCEL],
+    memberIds: [],
     subtasks: [],
     status: 'await-feedback',
+    sortOrder: 0,
   },
   {
     id: 'daily-kochwelt-recipe',
@@ -38,8 +42,10 @@ export const MOCK_TASKS: BoardTask[] = [
     dueDate: '20/05/2023',
     priority: 'medium',
     assignees: [ANTON, EMMANUEL, MARCEL],
+    memberIds: [],
     subtasks: [],
     status: 'await-feedback',
+    sortOrder: 1,
   },
   {
     id: 'css-architecture-planning',
@@ -49,10 +55,12 @@ export const MOCK_TASKS: BoardTask[] = [
     dueDate: '08/05/2023',
     priority: 'urgent',
     assignees: [ANTON, EMMANUEL, MARCEL],
+    memberIds: [],
     subtasks: [
-      { title: 'Establish CSS Methodology', done: true },
-      { title: 'Setup Base Styles', done: true },
+      { id: 1, title: 'Establish CSS Methodology', done: true },
+      { id: 2, title: 'Setup Base Styles', done: true },
     ],
     status: 'done',
+    sortOrder: 0,
   },
 ];
