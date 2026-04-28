@@ -1,1 +1,82 @@
-<p>board works!</p>
+<section class="board-page">
+  <header class="board-header">
+    <h1 class="board-title">Board</h1>
+
+    <div class="board-controls">
+      <div class="search">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Find Task"
+          aria-label="Find Task"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+        <span class="search-divider" aria-hidden="true"></span>
+        <span class="search-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="9" r="6" stroke="#2A3647" stroke-width="2"/>
+            <path d="M14 14L18 18" stroke="#2A3647" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </div>
+
+      <button type="button" class="add-task-btn">
+        <span>Add task</span>
+        <span class="plus" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 2V14M2 8H14" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <div class="board-columns">
+    @for (col of columns; track col.key) {
+      <section
+        class="board-column"
+        [class.is-drop-target]="dragOverColumn() === col.key"
+        (dragover)="onDragOver($event, col.key)"
+        (dragleave)="onDragLeave($event, col.key)"
+        (drop)="onDrop($event, col.key)"
+      >
+        <header class="column-header">
+          <h2 class="column-title">{{ col.title }}</h2>
+          <button
+            type="button"
+            class="add-column-btn"
+            [attr.aria-label]="'Add task to ' + col.title"
+          >
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="21" rx="5.5" stroke="#2A3647"/>
+              <path d="M11 6V16M6 11H16" stroke="#2A3647" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </header>
+
+        @if (tasksByStatus(col.key).length === 0) {
+          <div class="empty-slot">No tasks {{ col.title }}</div>
+        } @else {
+          <div class="column-cards">
+            @for (task of tasksByStatus(col.key); track task.id) {
+              <app-task-card
+                class="board-card"
+                [class.is-dragging]="draggingTaskId() === task.id"
+                [task]="task"
+                (cardClick)="openTask(task)"
+                draggable="true"
+                (dragstart)="onDragStart($event, task.id)"
+                (dragend)="onDragEnd()"
+              />
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+</section>
+
+@if (selectedTask(); as task) {
+  <app-task-detail-dialog [task]="task" (close)="closeDialog()" />
+}

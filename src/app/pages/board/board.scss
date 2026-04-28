@@ -1,0 +1,241 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: #f6f7f8;
+  min-height: 100%;
+}
+
+.board-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 48px clamp(24px, 6vw, 80px) 80px;
+  box-sizing: border-box;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.board-title {
+  margin: 0;
+  font-size: 61px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000000;
+  letter-spacing: -0.5px;
+}
+
+.board-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: clamp(220px, 28vw, 320px);
+  height: 48px;
+  background: #ffffff;
+  border: 1px solid #d1d1d1;
+  border-radius: 10px;
+  padding: 0 18px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: #29abe2;
+    box-shadow: 0 0 0 3px rgba(41, 171, 226, 0.15);
+  }
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  font-family: inherit;
+  color: #2a3647;
+  height: 100%;
+  padding: 0;
+
+  &::placeholder {
+    color: #a8a8a8;
+  }
+}
+
+.search-divider {
+  width: 1px;
+  height: 22px;
+  background: #d1d1d1;
+  margin: 0 12px;
+}
+
+.search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-task-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  height: 52px;
+  background: #2a3647;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 21px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: #29abe2;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #29abe2;
+    outline-offset: 2px;
+  }
+
+  .plus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.board-columns {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(252px, 1fr));
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.board-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px 4px 24px;
+  border-radius: 16px;
+  transition: background-color 0.15s ease;
+
+  &.is-drop-target {
+    background: rgba(41, 171, 226, 0.08);
+    outline: 2px dashed #29abe2;
+    outline-offset: -4px;
+  }
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.column-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #42526e;
+}
+
+.add-column-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    background: #f1f2f4;
+    transform: scale(1.05);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #29abe2;
+    outline-offset: 2px;
+  }
+}
+
+.empty-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px dashed #a8a8a8;
+  border-radius: 10px;
+  background: #e7e7e7;
+  color: #a8a8a8;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: center;
+}
+
+.column-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.board-card {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &.is-dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+  }
+}
+
+@media (max-width: 1180px) {
+  .board-columns {
+    grid-template-columns: repeat(2, minmax(252px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .board-page {
+    padding: 32px 20px 48px;
+    gap: 24px;
+  }
+
+  .board-title {
+    font-size: 47px;
+  }
+
+  .board-columns {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .add-task-btn {
+    height: 48px;
+    font-size: 18px;
+  }
+}
