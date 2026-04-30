@@ -1,4 +1,5 @@
 :host {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -152,5 +153,132 @@
 
   svg {
     display: block;
+  }
+}
+
+.move-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #d1d1d1;
+  background: #ffffff;
+  color: #2a3647;
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.15s ease, transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  z-index: 5;
+
+  svg {
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    background: #2a3647;
+    color: #ffffff;
+    border-color: #2a3647;
+    transform: scale(1.05);
+  }
+
+  &.is-open {
+    background: #29abe2;
+    color: #ffffff;
+    border-color: #29abe2;
+
+    svg {
+      transform: rotate(90deg);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #29abe2;
+    outline-offset: 2px;
+  }
+}
+
+.move-menu {
+  position: absolute;
+  top: 56px;
+  right: 12px;
+  min-width: 200px;
+  max-width: calc(100% - 24px);
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  padding: 8px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: default;
+  animation: moveMenuIn 0.14s ease-out;
+}
+
+@keyframes moveMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.move-menu-heading {
+  margin: 4px 8px 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2a3647;
+}
+
+.move-menu-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 400;
+  color: #2a3647;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+
+  &:hover:not(:disabled) {
+    background: #2a3647;
+    color: #ffffff;
+  }
+
+  &:disabled,
+  &.is-current {
+    color: #a8a8a8;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #29abe2;
+    outline-offset: -2px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .move-btn {
+    display: inline-flex;
+  }
+
+  .category-badge {
+    max-width: calc(100% - 56px);
+  }
+
+  .task-text {
+    padding-right: 8px;
   }
 }

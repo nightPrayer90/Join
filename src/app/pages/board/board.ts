@@ -141,6 +141,15 @@ export class Board {
     this.searchTerm.set(value);
   }
 
+  /**
+   * Moves a task to the target column via the mobile/tablet menu.
+   * Appends at the end of the column and persists sort order.
+   */
+  onMoveStatus(taskId: string, status: BoardStatus): void {
+    const insertIdx = this.tasksByStatus(status).length;
+    this.persistDrop(Number(taskId), status, insertIdx);
+  }
+
   /** Opens the add-task dialog, optionally pre-setting the target column. */
   openAddDialog(status: BoardStatus): void {
     this.addDialogStatus.set(status);
