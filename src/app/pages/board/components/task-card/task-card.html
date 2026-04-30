@@ -4,6 +4,49 @@
   [class.category-technical-task]="task.category === 'Technical Task'"
 >{{ task.category }}</span>
 
+@if (columns.length) {
+  <button
+    type="button"
+    class="move-btn"
+    [class.is-open]="menuOpen()"
+    aria-label="Move task to another column"
+    [attr.aria-expanded]="menuOpen()"
+    aria-haspopup="menu"
+    draggable="false"
+    (click)="toggleMenu($event)"
+    (keydown.enter)="stopKey($event)"
+    (keydown.space)="stopKey($event)"
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  @if (menuOpen()) {
+    <div
+      class="move-menu"
+      role="menu"
+      (click)="$event.stopPropagation()"
+      (keydown.enter)="stopKey($event)"
+      (keydown.space)="stopKey($event)"
+    >
+      <p class="move-menu-heading">Move to</p>
+      @for (col of columns; track col.key) {
+        <button
+          type="button"
+          class="move-menu-item"
+          role="menuitem"
+          [class.is-current]="col.key === task.status"
+          [disabled]="col.key === task.status"
+          (click)="selectStatus($event, col.key)"
+          (keydown.enter)="stopKey($event)"
+          (keydown.space)="stopKey($event)"
+        >{{ col.title }}</button>
+      }
+    </div>
+  }
+}
+
 <div class="task-text">
   <h3 class="task-title">{{ task.title }}</h3>
   <p class="task-description">{{ task.description }}</p>
