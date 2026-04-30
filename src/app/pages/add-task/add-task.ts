@@ -26,12 +26,14 @@ export class AddTask implements OnInit, OnDestroy {
   categoryId: number | null = null;
   dueDateTouched = false;
   saveError = '';
+  minDateISO = '';
   subtaskInput = '';
   subtasks: Subtask[] = [];
   editingSubtaskId: number | null = null;
   editSubtaskInput = '';
 
   assignedOpen = false;
+  assignedSearch = '';
   categoryOpen = false;
   submitted = false;
 
@@ -45,17 +47,6 @@ export class AddTask implements OnInit, OnDestroy {
     { id: 2, label: 'User Story' },
   ];
 
-  assignedLabel = computed(() => {
-    const ids = this.selectedMemberIds();
-    if (!ids.length) return 'Select contacts to assign';
-    const labels: string[] = [];
-    const contacts = this.dbService.contactsList();
-    for (let i = 0; i < contacts.length; i++) {
-      if (ids.includes(contacts[i].id)) labels.push(contacts[i].full_name);
-    }
-    return labels.join(', ');
-  });
-
   selectedContacts = computed(() => {
     const ids = this.selectedMemberIds();
     const contacts = this.dbService.contactsList();
@@ -68,6 +59,10 @@ export class AddTask implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.dbService.getContacts();
+    const today = new Date();
+    const month = `${today.getMonth() + 1}`.padStart(2, '0');
+    const day = `${today.getDate()}`.padStart(2, '0');
+    this.minDateISO = `${today.getFullYear()}-${month}-${day}`;
   }
 
   ngOnDestroy(): void {
@@ -82,7 +77,10 @@ export class AddTask implements OnInit, OnDestroy {
     const insideAssigned = !!target.closest('.assigned-select');
     const insideCategory = !!target.closest('.category-select');
 
-    if (!insideAssigned) this.assignedOpen = false;
+    if (!insideAssigned) {
+      this.assignedOpen = false;
+      this.assignedSearch = '';
+    }
     if (!insideCategory) this.categoryOpen = false;
   }
 
@@ -93,6 +91,13 @@ export class AddTask implements OnInit, OnDestroy {
   toggleAssignedDropdown(event: MouseEvent): void {
     event.stopPropagation();
     this.assignedOpen = !this.assignedOpen;
+    if (!this.assignedOpen) this.assignedSearch = '';
+    this.categoryOpen = false;
+  }
+
+  openAssignedDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    this.assignedOpen = true;
     this.categoryOpen = false;
   }
 
@@ -116,8 +121,29 @@ export class AddTask implements OnInit, OnDestroy {
   }
 
   assignedInputValue(): string {
-    if (this.assignedOpen) return '';
+    if (this.assignedOpen) return this.assignedSearch;
     return 'Select contacts to assign';
+  }
+
+  onAssignedInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.assignedSearch = input.value;
+    this.assignedOpen = true;
+    this.categoryOpen = false;
+  }
+
+  filteredAssignedContacts(): ContactsModel[] {
+    const query = this.assignedSearch.trim().toLowerCase();
+    const contacts = this.dbService.contactsList();
+    if (!query) return contacts;
+    const letter = query.charAt(0);
+    return contacts.filter((contact) => {
+      const words = contact.full_name.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      for (let i = 0; i < words.length; i++) {
+        if (words[i].charAt(0) === letter) return true;
+      }
+      return false;
+    });
   }
 
   contactDisplayName(fullName: string, email: string): string {
@@ -195,6 +221,7 @@ export class AddTask implements OnInit, OnDestroy {
 
   async createTask(): Promise<void> {
     this.submitted = true;
+    this.dueDateTouched = true;
     this.saveError = '';
     if (!this.isFormValid()) return;
 
@@ -241,11 +268,10 @@ export class AddTask implements OnInit, OnDestroy {
     this.categoryOpen = false;
   }
 
-  isFieldInvalid(field: 'title' | 'date' | 'category'): boolean {
+  isFieldInvalid(field: 'title' | 'category'): boolean {
     if (!this.submitted) return false;
     if (field === 'title') return !this.title.trim();
-    if (field === 'category') return this.categoryId === null;
-    return this.isDueDateInvalid();
+    return this.categoryId === null;
   }
 
   onDueDateBlur(): void {
@@ -261,13 +287,35 @@ export class AddTask implements OnInit, OnDestroy {
     if (digits.length > 2) parts.push(digits.slice(2, 4));
     if (digits.length > 4) parts.push(digits.slice(4, 8));
 
-    this.dueDateText = parts.join('.');
+    this.dueDateText = parts.join('/');
     input.value = this.dueDateText;
   }
 
+  openDatePicker(dateInput: HTMLInputElement): void {
+    if (typeof dateInput.showPicker === 'function') {
+      dateInput.showPicker();
+      return;
+    }
+    dateInput.click();
+  }
+
+  onDatePickerChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    if (!value) return;
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return;
+    this.dueDateText = `${match[3]}/${match[2]}/${match[1]}`;
+    this.dueDateTouched = true;
+  }
+
   showDateError(): boolean {
-    if (!this.submitted && !this.dueDateTouched) return false;
-    return this.isDueDateInvalid();
+    return this.dueDateTouched && this.isDueDateInvalid();
+  }
+
+  dueDateErrorMessage(): string {
+    if (!this.dueDateText.trim()) return 'This field is required';
+    return 'Due date cannot be in the past';
   }
 
   private isFormValid(): boolean {
@@ -281,6 +329,7 @@ export class AddTask implements OnInit, OnDestroy {
     today.setHours(0, 0, 0, 0);
     return date < today;
   }
+
 
   private parseDueDate(value: string): Date | null {
     const normalized = value.trim();

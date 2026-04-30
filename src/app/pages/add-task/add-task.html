@@ -19,7 +19,8 @@
           <div class="input-with-icon">
             <input id="task-due-date" type="text" placeholder="dd/mm/yyyy" [(ngModel)]="dueDateText" name="dueDate"
               [class.invalid]="showDateError()" (input)="onDueDateInput($event)" (blur)="onDueDateBlur()">
-            <button type="button" class="field-icon-btn" aria-label="Choose date">
+            <input #nativeDatePicker type="date" class="native-date-picker" [min]="minDateISO" (change)="onDatePickerChange($event)">
+            <button type="button" class="field-icon-btn" aria-label="Choose date" (click)="openDatePicker(nativeDatePicker)">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M7 2C7.55228 2 8 2.44772 8 3V4H16V3C16 2.44772 16.4477 2 17 2C17.5523 2 18 2.44772 18 3V4H19C20.6569 4 22 5.34315 22 7V19C22 20.6569 20.6569 22 19 22H5C3.34315 22 2 20.6569 2 19V7C2 5.34315 3.34315 4 5 4H6V3C6 2.44772 6.44772 2 7 2Z" fill="#2A3647"/>
                 <path d="M4 10H20V19C20 19.5523 19.5523 20 19 20H5C4.44772 20 4 19.5523 4 19V10Z" fill="#F6F7F8"/>
@@ -28,7 +29,7 @@
             </button>
           </div>
           @if (showDateError()) {
-          <p class="field-error">Please enter a valid date (dd/mm/yyyy or dd.mm.yyyy) not in the past.</p>
+          <p class="field-error">{{ dueDateErrorMessage() }}</p>
           }
         </div>
 
@@ -87,8 +88,9 @@
           <label class="field-label" for="assigned-to">Assigned to</label>
           <div class="select-wrapper assigned-select">
             <div class="select-field" [class.open]="assignedOpen">
-              <input id="assigned-to" type="text" [value]="assignedInputValue()" readonly (click)="toggleAssignedDropdown($event)">
-              <span class="select-arrow" aria-hidden="true">
+              <input id="assigned-to" type="text" [value]="assignedInputValue()" (click)="openAssignedDropdown($event)"
+                (input)="onAssignedInput($event)">
+              <span class="select-arrow" aria-hidden="true" (click)="toggleAssignedDropdown($event)">
                 <svg viewBox="0 0 24 24">
                   <path d="M7 10L12 15L17 10" />
                 </svg>
@@ -97,7 +99,7 @@
 
             @if (assignedOpen) {
             <div class="select-dropdown">
-              @for (contact of dbService.contactsList(); track contact.id) {
+              @for (contact of filteredAssignedContacts(); track contact.id) {
               <label class="assigned-item">
                 <span class="assigned-user">
                   <span class="assigned-avatar" [style.background-color]="contact.avatar_color">
@@ -142,7 +144,7 @@
             <div class="select-field" [class.invalid]="isFieldInvalid('category')" [class.open]="categoryOpen">
               <input id="category" type="text" [value]="categoryLabel() || 'Select task category'" readonly
                 (click)="toggleCategoryDropdown($event)">
-            <span class="select-arrow" aria-hidden="true">
+            <span class="select-arrow" aria-hidden="true" (click)="toggleCategoryDropdown($event)">
               <svg viewBox="0 0 24 24">
                 <path d="M7 10L12 15L17 10" />
               </svg>
