@@ -1,4 +1,5 @@
 import { Subtask, Tasks } from '../interface/tasks-interface';
+import { CategoryModel } from './category-model';
 
 /**
  * Represents a single task entity used in the application.
@@ -52,7 +53,7 @@ export class TasksModel {
   private _date: string;
   priority: number;
   member: number[];
-  category: string;
+  category: number;
   subtasks: Subtask[];
   task_status: string;
   sort_order: number;
@@ -64,7 +65,7 @@ export class TasksModel {
     this._date = data.date ?? new Date().toISOString();
     this.priority = data.priority ?? 0;
     this.member = data.member ?? [];
-    this.category = data.category ?? 'general';
+    this.category = data.category ?? 0;
     this.subtasks = data.subtasks ?? [];
     this.task_status = data.task_status ?? 'todo';
     this.sort_order = data.sort_order ?? 0;
@@ -95,6 +96,16 @@ export class TasksModel {
   getCleanUpdateJson(): object {
     return this.getCleanAddJson();
   }
+
+  //#region CATEGORY HANDLING ---------------------------------------------------------------------
+  /**
+   * Resolves the task's category id into a full CategoryModel object.
+   * @returns The CategoryModel or null if the id is invalid
+   */
+  getCategory(): CategoryModel | null {
+    return CategoryModel.findById(this.category);
+  }
+  //#endregion
 
   //#region MEMBER HANDLING -----------------------------------------------------------------------
   /**

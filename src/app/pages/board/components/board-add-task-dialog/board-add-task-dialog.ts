@@ -200,7 +200,7 @@ export class BoardAddTaskDialog implements OnInit {
     task.description = this.description.trim();
     task.priority = this.priority;
     task.member = [...this.selectedMemberIds()];
-    task.category = String(this.categoryId ?? '');
+    task.category = this.categoryId ?? 0;
     task.subtasks = [...this.subtasks];
     task.task_status = this.presetStatus;
     task.sort_order = 0;

@@ -241,8 +241,8 @@ export class Board {
   /**
    * Maps a category ID string ('1' or '2') to a human-readable BoardCategory.
    */
-  private mapCategory(value: string): BoardCategory {
-    return value === '1' ? 'Technical Task' : 'User Story';
+  private mapCategory(value: number): BoardCategory {
+    return value === 1 ? 'Technical Task' : 'User Story';
   }
 
   /**
