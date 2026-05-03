@@ -59,4 +59,17 @@ export class ContactsModel implements Contact {
     const last = parts[parts.length - 1]?.charAt(0) || '';
     return `${first}${last || first}`.toUpperCase();
   }
+
+  /**
+   * Returns the contact name with "(You)" suffix if the email matches the current user.
+   * @param currentUserEmail - Email of the logged-in user
+   */
+  getDisplayName(currentUserEmail: string | null): string {
+    if (!currentUserEmail) return this.full_name;
+    if (currentUserEmail.toLowerCase() === this.email.toLowerCase()) return `${this.full_name} (You)`;
+    return this.full_name;
+  }
+
+
+
 }

@@ -22,7 +22,7 @@ export class CategoryModel implements Category {
    * @param id - Category id
    * @returns The matching CategoryModel or null if not found
    */
-  static findById(id: number | null): CategoryModel | null {
+  static findById(id: number| null): CategoryModel | null {
     if (id === null) return null;
     return CategoryModel.LIST.find((category) => category.id === id) ?? null;
   }

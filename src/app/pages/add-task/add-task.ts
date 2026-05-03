@@ -3,7 +3,7 @@ import { Component, ElementRef, HostListener, OnDestroy, OnInit, computed, injec
 import { FormsModule } from '@angular/forms';
 import { Supabase } from '../../service/supabase';
 import { ContactsModel } from '../../shared/models/contacts-model';
-import { Subtask } from '../../shared/interface/tasks-interface';
+
 import { TasksModel } from '../../shared/models/tasks-model';
 import { CategoryModel } from '../../shared/models/category-model';
 
@@ -52,7 +52,8 @@ export class AddTask implements OnInit, OnDestroy {
   subtaskInput = '';
 
   /** List of subtasks already added to this task. */
-  subtasks: Subtask[] = [];
+  //subtasks: Subtask[] = [];
+  draftTask = new TasksModel();
 
   /** Id of the subtask currently in edit mode (null = none). */
   editingSubtaskId: number | null = null;
@@ -102,10 +103,9 @@ export class AddTask implements OnInit, OnDestroy {
    */
   selectedContacts = computed(() => {
     const ids = this.selectedMemberIds();
-    const contacts = this.dbService.contactsList();
     const selected: ContactsModel[] = [];
-    for (let i = 0; i < contacts.length; i++) {
-      if (ids.includes(contacts[i].id)) selected.push(contacts[i]);
+    for (let i = 0; i < this.dbService.contactsList().length; i++) {
+      if (ids.includes(this.dbService.contactsList()[i].id)) selected.push(this.dbService.contactsList()[i]);
     }
     return selected;
   });
@@ -116,11 +116,7 @@ export class AddTask implements OnInit, OnDestroy {
    * Loads contacts and computes today's ISO date as the minimum due date.
    */
   ngOnInit(): void {
-    this.dbService.getContacts();
-    const today = new Date();
-    const month = `${today.getMonth() + 1}`.padStart(2, '0');
-    const day = `${today.getDate()}`.padStart(2, '0');
-    this.minDateISO = `${today.getFullYear()}-${month}-${day}`;
+    this.minDateISO = TasksModel.todayISO();
   }
 
   /**
@@ -258,32 +254,6 @@ export class AddTask implements OnInit, OnDestroy {
   }
   //#endregion
 
-  //#region ASSIGNED TO — contact display helpers (initials + name) ================================
-  /**
-   * Returns the contact name with "(You)" suffix when the contact's email
-   * matches the currently logged-in user.
-   * Used in HTML: "Contact info: avatar + name".
-   * @param fullName - Contact full name
-   * @param email - Contact email
-   */
-  contactDisplayName(fullName: string, email: string): string {
-    const currentEmail = this.dbService.user()?.email?.toLowerCase() ?? '';
-    if (currentEmail && currentEmail === email.toLowerCase()) return `${fullName} (You)`;
-    return fullName;
-  }
-
-  /**
-   * Builds the two-letter avatar initials (first + last name initial).
-   * Used in HTML: "Contact info: avatar + name" and "Selected avatar chips".
-   * @param fullName - Contact full name
-   */
-  contactInitials(fullName: string): string {
-    const parts = fullName.trim().split(/\s+/).filter(Boolean);
-    const first = parts[0]?.charAt(0).toUpperCase() ?? '';
-    const last = parts.length > 1 ? parts[parts.length - 1].charAt(0).toUpperCase() : first;
-    return `${first}${last}`;
-  }
-  //#endregion
 
   //#region CATEGORY ===============================================================================
   /**
@@ -338,11 +308,11 @@ export class AddTask implements OnInit, OnDestroy {
    * Used in HTML: "Subtask input action buttons" and "Subtask: Input".
    */
   addSubtask(): void {
-    const title = this.subtaskInput.trim();
-    if (!title) return;
-    this.subtasks.push({ id: this.nextSubtaskId(), title, done: false });
-    this.subtaskInput = '';
-  }
+  const title = this.subtaskInput.trim();
+  if (!title) return;
+  this.draftTask.addSubtask(title);
+  this.subtaskInput = '';
+}
 
   /**
    * Handles Enter key in the subtask input.
@@ -362,18 +332,18 @@ export class AddTask implements OnInit, OnDestroy {
    * @param id - Subtask id
    */
   removeSubtask(id: number): void {
-    this.subtasks = this.subtasks.filter((subtask) => subtask.id !== id);
-    if (this.editingSubtaskId === id) this.cancelEditSubtask();
-  }
+  this.draftTask.removeSubtask(id);
+  if (this.editingSubtaskId === id) this.cancelEditSubtask();
+}
 
   /**
    * Switches a subtask into edit mode (pencil icon).
    * Used in HTML: "Edit button (pencil icon)".
    * @param subtask - Subtask to edit
    */
-  startEditSubtask(subtask: Subtask): void {
-    this.editingSubtaskId = subtask.id;
-    this.editSubtaskInput = subtask.title;
+  startEditSubtask(id: number, title: string): void {
+    this.editingSubtaskId = id;
+    this.editSubtaskInput = title;
   }
 
   /**
@@ -390,14 +360,12 @@ export class AddTask implements OnInit, OnDestroy {
    * Used in HTML: "Subtask in EDIT mode".
    */
   saveEditedSubtask(): void {
-    const id = this.editingSubtaskId;
-    const title = this.editSubtaskInput.trim();
-    if (id === null || !title) return;
-    this.subtasks = this.subtasks.map((subtask) =>
-      subtask.id === id ? { ...subtask, title } : subtask,
-    );
-    this.cancelEditSubtask();
-  }
+  const id = this.editingSubtaskId;
+  const title = this.editSubtaskInput.trim();
+  if (id === null || !title) return;
+  this.draftTask.updateSubtaskTitle(id, title);
+  this.cancelEditSubtask();
+}
 
   /**
    * Handles Enter key while editing a subtask.
@@ -407,17 +375,6 @@ export class AddTask implements OnInit, OnDestroy {
   onEditSubtaskEnter(event: Event): void {
     event.preventDefault();
     this.saveEditedSubtask();
-  }
-
-  /**
-   * Returns the next available subtask id (max existing id + 1).
-   */
-  private nextSubtaskId(): number {
-    let maxId = 0;
-    for (let i = 0; i < this.subtasks.length; i++) {
-      if (this.subtasks[i].id > maxId) maxId = this.subtasks[i].id;
-    }
-    return maxId + 1;
   }
   //#endregion
 
@@ -484,7 +441,7 @@ export class AddTask implements OnInit, OnDestroy {
    * Used in HTML: "Due date" error message.
    */
   showDateError(): boolean {
-    return this.dueDateTouched && this.isDueDateInvalid();
+    return this.dueDateTouched && TasksModel.isDueDateInvalid(this.dueDateText);
   }
 
   /**
@@ -494,50 +451,6 @@ export class AddTask implements OnInit, OnDestroy {
   dueDateErrorMessage(): string {
     if (!this.dueDateText.trim()) return 'This field is required';
     return 'Due date cannot be in the past';
-  }
-
-  /**
-   * Returns true if the due date is missing or before today.
-   */
-  private isDueDateInvalid(): boolean {
-    const date = this.parseDueDate(this.dueDateText);
-    if (!date) return true;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
-  }
-
-  /**
-   * Parses a date string in "dd/mm/yyyy", "dd.mm.yyyy", "dd-mm-yyyy"
-   * or "yyyy-mm-dd" format. Returns null on invalid input.
-   * @param value - Raw date string
-   */
-  private parseDueDate(value: string): Date | null {
-    const normalized = value.trim();
-    if (!normalized) return null;
-
-    const ddmmyyyy = normalized.match(/^(\d{2})[./-](\d{2})[./-](\d{4})$/);
-    if (ddmmyyyy) {
-      const day = Number(ddmmyyyy[1]);
-      const month = Number(ddmmyyyy[2]);
-      const year = Number(ddmmyyyy[3]);
-      const date = new Date(year, month - 1, day);
-      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day)
-        return null;
-      date.setHours(0, 0, 0, 0);
-      return date;
-    }
-
-    const yyyymmdd = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!yyyymmdd) return null;
-    const year = Number(yyyymmdd[1]);
-    const month = Number(yyyymmdd[2]);
-    const day = Number(yyyymmdd[3]);
-    const date = new Date(year, month - 1, day);
-    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day)
-      return null;
-    date.setHours(0, 0, 0, 0);
-    return date;
   }
   //#endregion
 
@@ -557,7 +470,7 @@ export class AddTask implements OnInit, OnDestroy {
    * Returns true if all required fields are filled and the due date is valid.
    */
   private isFormValid(): boolean {
-    return !!this.title.trim() && this.categoryId !== null && !this.isDueDateInvalid();
+    return !!this.title.trim() && this.categoryId !== null && !TasksModel.isDueDateInvalid(this.dueDateText);
   }
   //#endregion
 
@@ -573,7 +486,7 @@ export class AddTask implements OnInit, OnDestroy {
     this.saveError = '';
     if (!this.isFormValid()) return;
 
-    const dueDate = this.parseDueDate(this.dueDateText);
+    const dueDate = TasksModel.parseDate(this.dueDateText);
     if (!dueDate) return;
 
     this.isSaving.set(true);
@@ -583,7 +496,7 @@ export class AddTask implements OnInit, OnDestroy {
     task.priority = this.priority;
     task.member = [...this.selectedMemberIds()];
     task.category = this.categoryId ?? 0;
-    task.subtasks = [...this.subtasks];
+    task.subtasks = [...this.draftTask.subtasks];
     task.task_status = 'todo';
     task.sort_order = 0;
     task.date = dueDate;
@@ -611,7 +524,7 @@ export class AddTask implements OnInit, OnDestroy {
     this.priority = 2;
     this.categoryId = null;
     this.subtaskInput = '';
-    this.subtasks = [];
+    this.draftTask = new TasksModel();
     this.dueDateTouched = false;
     this.saveError = '';
     this.cancelEditSubtask();

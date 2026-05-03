@@ -278,4 +278,59 @@ export class TasksModel {
     return this.date < new Date();
   }
   //#endregion
+
+ //#region STATIC DATE HELPERS -------------------------------------------------------------------
+/**
+ * Parses a date string in "dd/mm/yyyy", "dd.mm.yyyy", "dd-mm-yyyy"
+ * or "yyyy-mm-dd" format. Returns null on invalid input.
+ * @param value Raw date string
+ */
+static parseDate(value: string): Date | null {
+  const normalized = value.trim();
+  if (!normalized) return null;
+
+  const ddmmyyyy = normalized.match(/^(\d{2})[./-](\d{2})[./-](\d{4})$/);
+  if (ddmmyyyy) {
+    const day = Number(ddmmyyyy[1]);
+    const month = Number(ddmmyyyy[2]);
+    const year = Number(ddmmyyyy[3]);
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  const yyyymmdd = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!yyyymmdd) return null;
+  const year = Number(yyyymmdd[1]);
+  const month = Number(yyyymmdd[2]);
+  const day = Number(yyyymmdd[3]);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+/**
+ * Returns true if the given date string is missing or before today.
+ * @param value Raw date string
+ */
+static isDueDateInvalid(dateValue: string): boolean {
+  const date = TasksModel.parseDate(dateValue);
+  if (!date) return true;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today;
+}
+
+/**
+ * Returns today's date as ISO string (yyyy-mm-dd) for date picker min attribute.
+ */
+static todayISO(): string {
+  const t = new Date();
+  const m = `${t.getMonth() + 1}`.padStart(2, '0');
+  const d = `${t.getDate()}`.padStart(2, '0');
+  return `${t.getFullYear()}-${m}-${d}`;
+}
+//#endregion
 }

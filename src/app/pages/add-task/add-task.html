@@ -150,9 +150,9 @@
                 <!-- Contact info: avatar + name -->
                 <span class="assigned-user">
                   <span class="assigned-avatar" [style.background-color]="contact.avatar_color">
-                    {{ contactInitials(contact.full_name) }}
+                    {{ contact.getInitials() }}
                   </span>
-                  <span class="assigned-name">{{ contactDisplayName(contact.full_name, contact.email) }}</span>
+                  <span class="assigned-name">{{ contact.getDisplayName(dbService.user()?.email ?? null) }}</span>
                 </span>
 
                 <!-- Custom checkbox (real input is hidden, SVGs are styled visuals) -->
@@ -192,7 +192,7 @@
           <div class="assigned-selected-list">
             @for (contact of selectedContacts(); track contact.id) {
             <span class="assigned-selected-avatar" [style.background-color]="contact.avatar_color">
-              {{ contactInitials(contact.full_name) }}
+              {{  contact.getInitials() }}
             </span>
             }
           </div>
@@ -256,9 +256,9 @@
           </div>
 
           <!-- Subtask: List of added subtasks -->
-          @if (subtasks.length) {
+          @if (draftTask.subtasks.length) {
           <ul class="subtask-list">
-            @for (subtask of subtasks; track subtask.id) {
+            @for (subtask of draftTask.subtasks; track subtask.id) {
             <li>
 
               <!-- Subtask in EDIT mode -->
@@ -282,7 +282,7 @@
 
                 <!-- Edit button (pencil icon) -->
                 <button type="button" class="subtask-item-btn" aria-label="Edit subtask"
-                  (click)="startEditSubtask(subtask)">
+                  (click)="startEditSubtask(subtask.id, subtask.title)">
                   <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M2 16.25H3.4L12.025 7.625L10.625 6.225L2 14.85V16.25ZM16.3 6.175L12.05 1.975L13.45 0.575C13.8333 0.191667 14.3042 0 14.8625 0C15.4208 0 15.8917 0.191667 16.275 0.575L17.675 1.975C18.0583 2.35833 18.2583 2.82083 18.275 3.3625C18.2917 3.90417 18.1083 4.36667 17.725 4.75L16.3 6.175ZM14.85 7.65L4.25 18.25H0V14L10.6 3.4L14.85 7.65Z"
