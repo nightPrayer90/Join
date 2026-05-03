@@ -3,7 +3,6 @@ import { Component, ElementRef, HostListener, OnDestroy, OnInit, computed, injec
 import { FormsModule } from '@angular/forms';
 import { Supabase } from '../../service/supabase';
 import { ContactsModel } from '../../shared/models/contacts-model';
-
 import { TasksModel } from '../../shared/models/tasks-model';
 import { CategoryModel } from '../../shared/models/category-model';
 
@@ -16,123 +15,53 @@ type PriorityKey = 1 | 2 | 3;
   styleUrl: './add-task.scss',
 })
 export class AddTask implements OnInit, OnDestroy {
-  //#region SERVICE & HOST INJECTION ===============================================================
-  /** Supabase service for contacts and task persistence. */
   dbService = inject(Supabase);
-
-  /** Reference to the host element (used for click-outside detection). */
+  readonly categories = CategoryModel.LIST;
   private host = inject(ElementRef<HTMLElement>);
-  //#endregion
 
-  //#region FORM STATE — left column fields (Title / Description / Due date) =======================
-  /** Bound to the "Title" input → see HTML: "Title". */
+  // Form fields
   title = '';
-
-  /** Bound to the "Description" textarea → see HTML: "Description". */
   description = '';
-
-  /** Bound to the "Due date" text input (dd/mm/yyyy) → see HTML: "Due date". */
   dueDateText = '';
-
-  /** Whether the due-date field has been touched (used to delay error display). */
   dueDateTouched = false;
-
-  /** Minimum date allowed in the native date picker (ISO format yyyy-mm-dd). */
   minDateISO = '';
-  //#endregion
-
-  //#region FORM STATE — right column fields (Priority / Category / Subtasks) ======================
-  /** Selected priority: 1 = Urgent, 2 = Medium (default), 3 = Low → see HTML: "Priority". */
   priority: PriorityKey = 2;
-
-  /** Selected category id (null = nothing chosen yet) → see HTML: "Category". */
   categoryId: number | null = null;
-
-  /** Bound to the "Add new subtask" input → see HTML: "Subtasks". */
   subtaskInput = '';
-
-  /** List of subtasks already added to this task. */
-  //subtasks: Subtask[] = [];
+  editSubtaskInput = '';
+  editingSubtaskId: number | null = null;
   draftTask = new TasksModel();
 
-  /** Id of the subtask currently in edit mode (null = none). */
-  editingSubtaskId: number | null = null;
-
-  /** Bound to the input field while editing a subtask. */
-  editSubtaskInput = '';
-  //#endregion
-
-  //#region UI STATE — dropdowns, validation flags, save state =====================================
-  /** Whether the "Assigned to" dropdown is open. */
+  // UI state — dropdowns, validation, save flags
   assignedOpen = false;
-
-  /** Current search text inside the "Assigned to" input. */
   assignedSearch = '';
-
-  /** Whether the "Category" dropdown is open. */
   categoryOpen = false;
-
-  /** True after the user pressed "Create Task" at least once (enables validation messages). */
   submitted = false;
-
-  /** Error message shown if saving the task fails. */
   saveError = '';
+  private toastTimeoutId: number | null = null;
 
-  /** True while a save request is in flight (disables the submit button). */
+  // Signals
   isSaving = signal(false);
-
-  /** Controls visibility of the "Task added to board" toast. */
   showToast = signal(false);
-
-  /** Ids of contacts currently selected in the "Assigned to" multi-select. */
   selectedMemberIds = signal<number[]>([]);
 
-  /** Active timeout id for auto-hiding the toast. */
-  private toastTimeoutId: number | null = null;
-  //#endregion
-
-  //#region STATIC OPTIONS =========================================================================
-  /** Available categories shown in the "Category" dropdown. */
-  readonly categories = CategoryModel.LIST;
-  //#endregion
-
-  //#region COMPUTED SIGNALS =======================================================================
-  /**
-   * Maps the selected member ids back to full contact objects.
-   * Used in HTML: "Assigned to: Selected contacts shown as colored avatar chips".
-   */
+  /** Resolves selected member ids to full contact objects. */
   selectedContacts = computed(() => {
     const ids = this.selectedMemberIds();
-    const selected: ContactsModel[] = [];
-    for (let i = 0; i < this.dbService.contactsList().length; i++) {
-      if (ids.includes(this.dbService.contactsList()[i].id)) selected.push(this.dbService.contactsList()[i]);
-    }
-    return selected;
+    return this.dbService.contactsList().filter((c) => ids.includes(c.id));
   });
-  //#endregion
 
-  //#region LIFECYCLE ==============================================================================
-  /**
-   * Loads contacts and computes today's ISO date as the minimum due date.
-   */
+  //#region LIFECYCLE -----------------------------------------------------------------------------
+  /** Computes today's ISO date as the minimum due date. */
   ngOnInit(): void {
     this.minDateISO = TasksModel.todayISO();
   }
 
-  /**
-   * Clears any pending toast timeout when the component is destroyed.
-   */
+  /** Clears any pending toast timeout when the component is destroyed. */
   ngOnDestroy(): void {
     if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
   }
-  //#endregion
-
-  //#region GLOBAL CLICK HANDLER (close dropdowns when clicking outside) ===========================
-  /**
-   * Closes the "Assigned to" or "Category" dropdown when the user clicks outside of them.
-   * Affects HTML areas: "Assigned to" and "Category".
-   * @param event - Document-level mouse click event
-   */
+  /** Click event - Closes the "Assigned to" or "Category" dropdown when the user clicks outside of them. ("Assigned to" and "Category") */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -140,32 +69,26 @@ export class AddTask implements OnInit, OnDestroy {
 
     const insideAssigned = !!target.closest('.assigned-select');
     const insideCategory = !!target.closest('.category-select');
-
     if (!insideAssigned) {
       this.assignedOpen = false;
       this.assignedSearch = '';
     }
     if (!insideCategory) this.categoryOpen = false;
   }
-  //#endregion
+  //#endregion ------------------------------------------------------------------------------------
 
-  //#region PRIORITY (Urgent / Medium / Low) =======================================================
+  //#region MEMBER SELECTION ----------------------------------------------------------------------
   /**
-   * Sets the task priority.
-   * Used in HTML: "Priority option: Urgent / Medium / Low".
-   * @param priority - 1 = Urgent, 2 = Medium, 3 = Low
+   * Returns the value displayed inside the "Assigned to" input. (Assigned to: Input field with arrow)
+   * While the dropdown is open: shows the current search text.
+   * While closed: shows the placeholder text.
    */
-  setPriority(priority: PriorityKey): void {
-    this.priority = priority;
+  assignedInputValue(): string {
+    if (this.assignedOpen) return this.assignedSearch;
+    return 'Select contacts to assign';
   }
-  //#endregion
 
-  //#region ASSIGNED TO — dropdown open/close ======================================================
-  /**
-   * Toggles the "Assigned to" dropdown via the arrow icon.
-   * Used in HTML: "Assigned to: Input field with arrow".
-   * @param event - Click event (propagation stopped to avoid the document listener)
-   */
+  /** Click event - Toggles the "Assigned to" dropdown via the arrow icon. (Assigned to: Input field with arrow) */
   toggleAssignedDropdown(event: MouseEvent): void {
     event.stopPropagation();
     this.assignedOpen = !this.assignedOpen;
@@ -173,35 +96,14 @@ export class AddTask implements OnInit, OnDestroy {
     this.categoryOpen = false;
   }
 
-  /**
-   * Opens the "Assigned to" dropdown when the user clicks into the input.
-   * Used in HTML: "Assigned to: Input field with arrow".
-   * @param event - Click event
-   */
+  /** Click event - Opens the "Assigned to" dropdown when the user clicks into the input. (Assigned to: Input field with arrow) */
   openAssignedDropdown(event: MouseEvent): void {
     event.stopPropagation();
     this.assignedOpen = true;
     this.categoryOpen = false;
   }
-  //#endregion
 
-  //#region ASSIGNED TO — input value & search filter ==============================================
-  /**
-   * Returns the value displayed inside the "Assigned to" input.
-   * While the dropdown is open: shows the current search text.
-   * While closed: shows the placeholder text.
-   * Used in HTML: "Assigned to: Input field with arrow".
-   */
-  assignedInputValue(): string {
-    if (this.assignedOpen) return this.assignedSearch;
-    return 'Select contacts to assign';
-  }
-
-  /**
-   * Updates the search query as the user types in the "Assigned to" input.
-   * Used in HTML: "Assigned to: Input field with arrow".
-   * @param event - Native input event
-   */
+  /** Native input event - Updates the search query as the user types in the "Assigned to" input. (Assigned to: Input field with arrow) */
   onAssignedInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.assignedSearch = input.value;
@@ -209,11 +111,7 @@ export class AddTask implements OnInit, OnDestroy {
     this.categoryOpen = false;
   }
 
-  /**
-   * Filters the contact list by the first letter of any name part.
-   * Returns all contacts when the search is empty.
-   * Used in HTML: "Assigned to: Dropdown list of contacts".
-   */
+  /** Filters the contact list by the first letter of any name part. (Assigned to: Dropdown list of contacts) */
   filteredAssignedContacts(): ContactsModel[] {
     const query = this.assignedSearch.trim().toLowerCase();
     const contacts = this.dbService.contactsList();
@@ -227,187 +125,122 @@ export class AddTask implements OnInit, OnDestroy {
       return false;
     });
   }
-  //#endregion
 
-  //#region ASSIGNED TO — member selection (checkboxes) ============================================
-  /**
-   * Checks whether a contact is currently selected.
-   * Used in HTML: "Custom checkbox" inside each contact row.
-   * @param id - Contact id
-   */
-  isMemberSelected(id: number): boolean {
-    return this.selectedMemberIds().includes(id);
+  /** Checks whether a contact is currently selected. */
+  isMemberSelected(contactId: number): boolean {
+    return this.selectedMemberIds().includes(contactId);
   }
 
-  /**
-   * Adds or removes a contact from the selected members list.
-   * Used in HTML: "Custom checkbox" inside each contact row.
-   * @param id - Contact id
-   */
-  toggleMember(id: number): void {
+  /** Adds or removes a contact from the selected members list. */
+  toggleMember(contactId: number): void {
     const current = this.selectedMemberIds();
-    if (current.includes(id)) {
-      this.selectedMemberIds.set(current.filter((memberId) => memberId !== id));
+    if (current.includes(contactId)) {
+      this.selectedMemberIds.set(current.filter((memberId) => memberId !== contactId));
       return;
     }
-    this.selectedMemberIds.set([...current, id]);
+    this.selectedMemberIds.set([...current, contactId]);
   }
-  //#endregion
+  //#endregion ------------------------------------------------------------------------------------
 
-
-  //#region CATEGORY ===============================================================================
-  /**
-   * Toggles the "Category" dropdown open/closed.
-   * Used in HTML: "Category: Input field with arrow".
-   * @param event - Click event
-   */
+  //#region CATEGORY ------------------------------------------------------------------------------
+  /** Click event - Toggles the "Category" dropdown open/closed. */
   toggleCategoryDropdown(event: MouseEvent): void {
     event.stopPropagation();
     this.categoryOpen = !this.categoryOpen;
     this.assignedOpen = false;
   }
 
-  /**
-   * Returns the label of the currently selected category, or '' if none.
-   * Used in HTML: "Category: Input field with arrow" (input value).
-   */
+  /** Returns the label of the currently selected category, or '' if none. */
   categoryLabel(): string {
     return CategoryModel.findById(this.categoryId)?.name ?? '';
   }
 
-  /**
-   * Selects a category and closes the dropdown.
-   * Used in HTML: "Category: Dropdown list".
-   * @param value - Selected category option
-   */
-  selectCategory(value: CategoryModel): void {
-    this.categoryId = value.id;
+  /** Selects a category and closes the dropdown. */
+  selectCategory(categoryOption: CategoryModel): void {
+    this.categoryId = categoryOption.id;
     this.categoryOpen = false;
   }
-  //#endregion
+  //#endregion ------------------------------------------------------------------------------------
 
-  //#region SUBTASKS — input field actions =========================================================
-  /**
-   * Returns true if the subtask input contains non-whitespace text.
-   * Used in HTML: "Subtask input action buttons" (visibility).
-   */
+  //#region SUBTASKS ------------------------------------------------------------------------------
+  /** Returns true if the subtask input contains non-whitespace text. */
   hasSubtaskInput(): boolean {
     return !!this.subtaskInput.trim();
   }
 
-  /**
-   * Clears the subtask input field (× button).
-   * Used in HTML: "Subtask input action buttons".
-   */
+  /** Clears the subtask input field (× button). */
   clearSubtaskInput(): void {
     this.subtaskInput = '';
   }
 
-  /**
-   * Adds the current input as a new subtask (✓ button or Enter key).
-   * Used in HTML: "Subtask input action buttons" and "Subtask: Input".
-   */
+  /** Adds the current input as a new subtask (✓ button or Enter key). */
   addSubtask(): void {
-  const title = this.subtaskInput.trim();
-  if (!title) return;
-  this.draftTask.addSubtask(title);
-  this.subtaskInput = '';
-}
+    const title = this.subtaskInput.trim();
+    if (!title) return;
+    this.draftTask.addSubtask(title);
+    this.subtaskInput = '';
+  }
 
-  /**
-   * Handles Enter key in the subtask input.
-   * Used in HTML: "Subtask: Input".
-   * @param event - Keyboard event
-   */
+  /** Keyboard event - Handles Enter key in the subtask input. */
   onSubtaskEnter(event: Event): void {
     event.preventDefault();
     this.addSubtask();
   }
-  //#endregion
 
-  //#region SUBTASKS — list item actions (edit / delete) ===========================================
-  /**
-   * Removes a subtask by id and exits edit mode if it was being edited.
-   * Used in HTML: "Delete button (trash icon)".
-   * @param id - Subtask id
-   */
-  removeSubtask(id: number): void {
-  this.draftTask.removeSubtask(id);
-  if (this.editingSubtaskId === id) this.cancelEditSubtask();
-}
-
-  /**
-   * Switches a subtask into edit mode (pencil icon).
-   * Used in HTML: "Edit button (pencil icon)".
-   * @param subtask - Subtask to edit
-   */
-  startEditSubtask(id: number, title: string): void {
-    this.editingSubtaskId = id;
-    this.editSubtaskInput = title;
+  /** Removes a subtask by id and exits edit mode if it was being edited. (Delete button (trash icon)) */
+  removeSubtask(subtaskId: number): void {
+    this.draftTask.removeSubtask(subtaskId);
+    if (this.editingSubtaskId === subtaskId) this.cancelEditSubtask();
   }
 
-  /**
-   * Exits edit mode without saving (× button while editing).
-   * Used in HTML: "Subtask in EDIT mode".
-   */
+  /** Switches a subtask into edit mode (Edit button (pencil icon)). */
+  startEditSubtask(subtaskId: number, subtaskTitle: string): void {
+    this.editingSubtaskId = subtaskId;
+    this.editSubtaskInput = subtaskTitle;
+  }
+
+  /** Exits edit mode without saving (× button while editing). */
   cancelEditSubtask(): void {
     this.editingSubtaskId = null;
     this.editSubtaskInput = '';
   }
 
-  /**
-   * Saves the edited subtask title (✓ button while editing).
-   * Used in HTML: "Subtask in EDIT mode".
-   */
+  /** Saves the edited subtask title (✓ button while editing). */
   saveEditedSubtask(): void {
-  const id = this.editingSubtaskId;
-  const title = this.editSubtaskInput.trim();
-  if (id === null || !title) return;
-  this.draftTask.updateSubtaskTitle(id, title);
-  this.cancelEditSubtask();
-}
+    const id = this.editingSubtaskId;
+    const title = this.editSubtaskInput.trim();
+    if (id === null || !title) return;
+    this.draftTask.updateSubtaskTitle(id, title);
+    this.cancelEditSubtask();
+  }
 
-  /**
-   * Handles Enter key while editing a subtask.
-   * Used in HTML: "Subtask in EDIT mode".
-   * @param event - Keyboard event
-   */
+  /** Keyboard event - Handles Enter key while editing a subtask. */
   onEditSubtaskEnter(event: Event): void {
     event.preventDefault();
     this.saveEditedSubtask();
   }
-  //#endregion
+  //#endregion ------------------------------------------------------------------------------------
 
-  //#region DUE DATE — input formatting & native picker ============================================
-  /**
-   * Marks the due-date field as touched so validation errors may appear.
-   * Used in HTML: "Due date" input (blur event).
-   */
+  //#region DUE DATE ------------------------------------------------------------------------------
+  /** Marks the due-date field as touched so validation errors may appear. */
   onDueDateBlur(): void {
     this.dueDateTouched = true;
   }
 
-  /**
-   * Auto-formats the typed date into "dd/mm/yyyy" while the user types.
-   * Used in HTML: "Due date" input (input event).
-   * @param event - Native input event
-   */
+  /** Native input event - Auto-formats the typed date into "dd/mm/yyyy" while the user types. */
   onDueDateInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/\D/g, '').slice(0, 8);
     const parts: string[] = [];
-
     if (digits.length > 0) parts.push(digits.slice(0, 2));
     if (digits.length > 2) parts.push(digits.slice(2, 4));
     if (digits.length > 4) parts.push(digits.slice(4, 8));
-
     this.dueDateText = parts.join('/');
     input.value = this.dueDateText;
   }
 
   /**
    * Opens the native date picker (calendar icon button).
-   * Used in HTML: "Due date" calendar icon.
    * @param dateInput - Hidden native date input element
    */
   openDatePicker(dateInput: HTMLInputElement): void {
@@ -419,9 +252,7 @@ export class AddTask implements OnInit, OnDestroy {
   }
 
   /**
-   * Reacts to the native date picker selection and converts the
-   * yyyy-mm-dd value into the visible dd/mm/yyyy text.
-   * Used in HTML: hidden native date input.
+   * Reacts to the native date picker selection and converts the yyyy-mm-dd value into the visible dd/mm/yyyy text.
    * @param event - Change event from the native date picker
    */
   onDatePickerChange(event: Event): void {
@@ -433,90 +264,83 @@ export class AddTask implements OnInit, OnDestroy {
     this.dueDateText = `${match[3]}/${match[2]}/${match[1]}`;
     this.dueDateTouched = true;
   }
-  //#endregion
+  //#endregion ------------------------------------------------------------------------------------
 
-  //#region DUE DATE — validation ==================================================================
-  /**
-   * Whether the due-date error message should currently be displayed.
-   * Used in HTML: "Due date" error message.
-   */
-  showDateError(): boolean {
-    return this.dueDateTouched && TasksModel.isDueDateInvalid(this.dueDateText);
-  }
-
-  /**
-   * Returns the appropriate error message for the due-date field.
-   * Used in HTML: "Due date" error message.
-   */
-  dueDateErrorMessage(): string {
-    if (!this.dueDateText.trim()) return 'This field is required';
-    return 'Due date cannot be in the past';
-  }
-  //#endregion
-
-  //#region FORM VALIDATION (Title / Category) =====================================================
-  /**
-   * Whether a required field should currently be displayed as invalid.
-   * Used in HTML: "Title" and "Category" fields.
-   * @param field - Field name
-   */
+  //#region FORM VALIDATION -----------------------------------------------------------------------
+  /** Whether a required field should currently be displayed as invalid. (Title" and "Category) */
   isFieldInvalid(field: 'title' | 'category'): boolean {
     if (!this.submitted) return false;
     if (field === 'title') return !this.title.trim();
     return this.categoryId === null;
   }
 
-  /**
-   * Returns true if all required fields are filled and the due date is valid.
-   */
+  /** Returns true if all required fields are filled and the due date is valid. */
   private isFormValid(): boolean {
-    return !!this.title.trim() && this.categoryId !== null && !TasksModel.isDueDateInvalid(this.dueDateText);
+    return (
+      !!this.title.trim() &&
+      this.categoryId !== null &&
+      !TasksModel.isDueDateInvalid(this.dueDateText)
+    );
+  }
+
+  /** Whether the due-date error message should currently be displayed. */
+  showDateError(): boolean {
+    return this.dueDateTouched && TasksModel.isDueDateInvalid(this.dueDateText);
+  }
+
+  /** Returns the appropriate error message for the due-date field. */
+  dueDateErrorMessage(): string {
+    if (!this.dueDateText.trim()) return 'This field is required';
+    return 'Due date cannot be in the past';
   }
   //#endregion
 
-  //#region FORM ACTIONS (Create / Clear) ==========================================================
-  /**
-   * Validates the form and saves the new task to the database.
-   * On success: clears the form and shows the toast.
-   * Used in HTML: "Submit button: creates the task in the database".
-   */
+  //#region FORM ACTIONS --------------------------------------------------------------------------
+  /** Validates the form and saves the new task to the database. ("Submit button: creates the task in the database) */
   async createTask(): Promise<void> {
     this.submitted = true;
     this.dueDateTouched = true;
     this.saveError = '';
     if (!this.isFormValid()) return;
 
-    const dueDate = TasksModel.parseDate(this.dueDateText);
-    if (!dueDate) return;
+    const task = this.buildTaskFromForm();
+    if (!task) return;
 
     this.isSaving.set(true);
-    const task = new TasksModel();
-    task.title = this.title.trim();
-    task.description = this.description.trim();
-    task.priority = this.priority;
-    task.member = [...this.selectedMemberIds()];
-    task.category = this.categoryId ?? 0;
-    task.subtasks = [...this.draftTask.subtasks];
-    task.task_status = 'todo';
-    task.sort_order = 0;
-    task.date = dueDate;
-
     const taskId = await this.dbService.addTask(task);
     this.isSaving.set(false);
+    this.handleSaveResult(taskId);
+  }
+
+  /** Builds a TasksModel from the current form state, or null if date is invalid. */
+  private buildTaskFromForm(): TasksModel | null {
+    const dueDate = TasksModel.parseDate(this.dueDateText);
+    if (!dueDate) return null;
+    return new TasksModel({
+      title: this.title.trim(),
+      description: this.description.trim(),
+      priority: this.priority,
+      member: [...this.selectedMemberIds()],
+      category: this.categoryId ?? 0,
+      subtasks: [...this.draftTask.subtasks],
+      task_status: 'todo',
+      sort_order: 0,
+      date: dueDate.toISOString(),
+    });
+  }
+
+  /** Handles the result of the save attempt — either resets the form or shows an error. */
+  private handleSaveResult(taskId: number | null): void {
     if (taskId === null) {
       this.saveError = 'Task could not be saved. Please check your data and permissions.';
       return;
     }
-
     this.clearForm();
     this.submitted = false;
     this.openToast();
   }
 
-  /**
-   * Resets the entire form to its initial empty state.
-   * Used in HTML: "Clear button: resets the whole form".
-   */
+  /** Resets the entire form to its initial empty state. */
   clearForm(): void {
     this.title = '';
     this.description = '';
@@ -532,13 +356,14 @@ export class AddTask implements OnInit, OnDestroy {
     this.assignedOpen = false;
     this.categoryOpen = false;
   }
-  //#endregion
+  //#endregion ------------------------------------------------------------------------------------
 
-  //#region TOAST NOTIFICATION =====================================================================
-  /**
-   * Shows the success toast and hides it again after 2.5 seconds.
-   * Used in HTML: "TOAST NOTIFICATION".
-   */
+  /** PRIORITY - Sets the task priority. (1 = Urgent, 2 = Medium, 3 = Low) */
+  setPriority(priority: PriorityKey): void {
+    this.priority = priority;
+  }
+
+  /** TOAST NOTIFICATION - Shows the success toast and hides it again after 2.5 seconds. */
   private openToast(): void {
     if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
     this.showToast.set(true);
@@ -547,5 +372,4 @@ export class AddTask implements OnInit, OnDestroy {
       this.toastTimeoutId = null;
     }, 2500);
   }
-  //#endregion
 }

@@ -107,153 +107,69 @@ export class TasksModel {
   }
   //#endregion
 
-  //#region MEMBER HANDLING -----------------------------------------------------------------------
-  /**
-   * Adds a member to the task if not already assigned.
-   * @param {number} contactId Member ID
-   */
+  //#region MEMBER HANDLING (not in use) ----------------------------------------------------------
+  /** Adds a member to the task if not already assigned. */
   addMember(contactId: number): void {
     if (!this.hasMember(contactId)) this.member.push(contactId);
   }
 
-  /**
-   * Removes a member from the task.
-   * @param {number} contactId Member ID
-   */
+  /** Removes a member from the task. */
   deleteMember(contactId: number): void {
-    for (let i = 0; i < this.member.length; i++) {
-      if (this.member[i] === contactId) {
-        this.member.splice(i, 1);
-        return;
-      }
-    }
+    this.member = this.member.filter((id) => id !== contactId);
   }
 
-  /**
-   * Checks if a member is assigned to the task.
-   * @param {number} contactId Member ID
-   * @returns {boolean}
-   */
+  /** Checks if a member is assigned to the task. */
   hasMember(contactId: number): boolean {
     return this.member.includes(contactId);
   }
   //#endregion ------------------------------------------------------------------------------------
 
   //#region SUBTASK HANDLING-----------------------------------------------------------------------
-  /**
-   * Adds a new subtask.
-   * @param {string} title Subtask title
-   */
+  /** Adds a new subtask. */
   addSubtask(title: string, isDone: boolean = false) {
-    this.subtasks.push({
-      id: this.getNextSubtaskId(),
-      title,
-      done: isDone,
-    });
+    this.subtasks.push({ id: this.getNextSubtaskId(), title, done: isDone });
   }
 
-  /**
-   * Removes a subtask by ID.
-   * @param {number} id Subtask ID
-   */
+  /** Removes a subtask by ID. */
   removeSubtask(id: number) {
-    for (let i = 0; i < this.subtasks.length; i++) {
-      if (this.subtasks[i].id === id) {
-        this.subtasks.splice(i, 1);
-        return;
-      }
-    }
+    this.subtasks = this.subtasks.filter((s) => s.id !== id);
   }
 
-  /**
-   * Updates the title of a subtask.
-   * @param {number} id Subtask ID
-   * @param {string} title New title
-   */
+  /** Updates the title of a subtask. */
   updateSubtaskTitle(id: number, title: string) {
     const subtask = this.findSubtask(id);
-    if (!subtask) return;
-    subtask.title = title;
+    if (subtask) subtask.title = title;
   }
 
-  /**
-   * Updates the completion state of a subtask.
-   * @param {number} id Subtask ID
-   * @param {boolean} isDone Completion state
-   */
+  /** Updates the completion state of a subtask. */
   updateSubtaskDone(id: number, isDone: boolean) {
     const subtask = this.findSubtask(id);
-    if (!subtask) return;
-    subtask.done = isDone;
+    if (subtask) subtask.done = isDone;
   }
 
-  /**
-   * Updates subtask.
-   * @param {number} id Subtask ID
-   * @param {string} title New title
-   * @param {boolean} isDone Completion state
-   */
-  updateSubtask(id: number, title: string, isDone: boolean) {
-    const subtask = this.findSubtask(id);
-    if (!subtask) return;
-    subtask.title = title;
-    subtask.done = isDone;
-  }
-
-  /**
-   * Returns the number of completed subtasks.
-   * @returns {number}
-   */
+  /** Returns the number of completed subtasks. */
   getCompletedSubtasks(): number {
-    let count = 0;
-    for (let i = 0; i < this.subtasks.length; i++) {
-      if (this.subtasks[i].done) count++;
-    }
-    return count;
+    return this.subtasks.filter((s) => s.done).length;
   }
 
-  /**
-   * Returns the total number of subtasks.
-   * @returns {number}
-   */
+  /** Returns the total number of subtasks. */
   getSubtasksCount(): number {
     return this.subtasks.length;
   }
 
-  /**
-   * Finds a subtask by ID.
-   * @param {number} id Subtask ID
-   * @returns {Subtask | null}
-   */
+  /** Finds a subtask by ID. */
   private findSubtask(id: number): Subtask | null {
-    for (let i = 0; i < this.subtasks.length; i++) {
-      if (this.subtasks[i].id === id) return this.subtasks[i];
-    }
-    return null;
+    return this.subtasks.find((s) => s.id === id) ?? null;
   }
 
-  /**
-   * Generates the next subtask ID.
-   * @returns {number}
-   */
+  /** Generates the next subtask ID (max existing + 1). */
   private getNextSubtaskId(): number {
-    let maxId = 0;
-    for (let i = 0; i < this.subtasks.length; i++) {
-      if (this.subtasks[i].id > maxId) maxId = this.subtasks[i].id;
-    }
-    return maxId + 1;
+    if (!this.subtasks.length) return 1;
+    return Math.max(...this.subtasks.map((s) => s.id)) + 1;
   }
   //#endregion ------------------------------------------------------------------------------------
 
-  //#region DATE HANDLING ---------------------------------------------------------------------------
-  /**
-   * Returns the task date as a JavaScript Date object.
-   * @returns {Date}
-   */
-  get date(): Date {
-    return new Date(this._date);
-  }
-
+  //#region DATE HELPERS --------------------------------------------------------------------------
   /**
    * Sets the task date (automatically converts to ISO string).
    * @param {Date} value
@@ -271,66 +187,58 @@ export class TasksModel {
   }
 
   /**
-   * Checks whether the task is overdue.
-   * @returns {boolean}
+   * Parses a date string in "dd/mm/yyyy", "dd.mm.yyyy", "dd-mm-yyyy"
+   * or "yyyy-mm-dd" format. Returns null on invalid input.
+   * @param value Raw date string
    */
-  isOverdue(): boolean {
-    return this.date < new Date();
-  }
-  //#endregion
+  static parseDate(value: string): Date | null {
+    const normalized = value.trim();
+    if (!normalized) return null;
 
- //#region STATIC DATE HELPERS -------------------------------------------------------------------
-/**
- * Parses a date string in "dd/mm/yyyy", "dd.mm.yyyy", "dd-mm-yyyy"
- * or "yyyy-mm-dd" format. Returns null on invalid input.
- * @param value Raw date string
- */
-static parseDate(value: string): Date | null {
-  const normalized = value.trim();
-  if (!normalized) return null;
+    const ddmmyyyy = normalized.match(/^(\d{2})[./-](\d{2})[./-](\d{4})$/);
+    if (ddmmyyyy) {
+      const day = Number(ddmmyyyy[1]);
+      const month = Number(ddmmyyyy[2]);
+      const year = Number(ddmmyyyy[3]);
+      const date = new Date(year, month - 1, day);
+      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day)
+        return null;
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
 
-  const ddmmyyyy = normalized.match(/^(\d{2})[./-](\d{2})[./-](\d{4})$/);
-  if (ddmmyyyy) {
-    const day = Number(ddmmyyyy[1]);
-    const month = Number(ddmmyyyy[2]);
-    const year = Number(ddmmyyyy[3]);
+    const yyyymmdd = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!yyyymmdd) return null;
+    const year = Number(yyyymmdd[1]);
+    const month = Number(yyyymmdd[2]);
+    const day = Number(yyyymmdd[3]);
     const date = new Date(year, month - 1, day);
-    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day)
+      return null;
     date.setHours(0, 0, 0, 0);
     return date;
   }
 
-  const yyyymmdd = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!yyyymmdd) return null;
-  const year = Number(yyyymmdd[1]);
-  const month = Number(yyyymmdd[2]);
-  const day = Number(yyyymmdd[3]);
-  const date = new Date(year, month - 1, day);
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
+  /**
+   * Returns true if the given date string is missing or before today.
+   * @param value Raw date string
+   */
+  static isDueDateInvalid(dateValue: string): boolean {
+    const date = TasksModel.parseDate(dateValue);
+    if (!date) return true;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  }
 
-/**
- * Returns true if the given date string is missing or before today.
- * @param value Raw date string
- */
-static isDueDateInvalid(dateValue: string): boolean {
-  const date = TasksModel.parseDate(dateValue);
-  if (!date) return true;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date < today;
-}
-
-/**
- * Returns today's date as ISO string (yyyy-mm-dd) for date picker min attribute.
- */
-static todayISO(): string {
-  const t = new Date();
-  const m = `${t.getMonth() + 1}`.padStart(2, '0');
-  const d = `${t.getDate()}`.padStart(2, '0');
-  return `${t.getFullYear()}-${m}-${d}`;
-}
-//#endregion
+  /**
+   * Returns today's date as ISO string (yyyy-mm-dd) for date picker min attribute.
+   */
+  static todayISO(): string {
+    const t = new Date();
+    const m = `${t.getMonth() + 1}`.padStart(2, '0');
+    const d = `${t.getDate()}`.padStart(2, '0');
+    return `${t.getFullYear()}-${m}-${d}`;
+  }
+  //#endregion
 }
