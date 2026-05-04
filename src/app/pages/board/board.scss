@@ -1,3 +1,5 @@
+@use '../../../styles/breakpoints' as *;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -55,7 +57,9 @@
   border-radius: 10px;
   padding: 0 18px;
   box-sizing: border-box;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:focus-within {
     border-color: #29abe2;
@@ -106,7 +110,10 @@
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
@@ -124,6 +131,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+
+  &__title {
+    @include tablet {
+      display: none;
+    }
   }
 }
 
@@ -184,7 +197,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
 
   &:hover {
     background: #f1f2f4;
@@ -226,7 +241,9 @@
 }
 
 .board-card {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 
   &.is-dragging {
     opacity: 0.5;
