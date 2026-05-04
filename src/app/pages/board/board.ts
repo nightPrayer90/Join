@@ -1,12 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BoardAssignee, BoardCategory, BoardColumn, BoardPriority, BoardStatus, BoardSubtask, BoardTask } from './data/board-task.types';
+import { BoardAssignee, BoardColumn, BoardPriority, BoardStatus, BoardSubtask, BoardTask } from './data/board-task.types';
 import { TaskCard } from './components/task-card/task-card';
 import { TaskDetailDialog } from './components/task-detail-dialog/task-detail-dialog';
 import { BoardAddTaskDialog } from './components/board-add-task-dialog/board-add-task-dialog';
 import { Supabase } from '../../service/supabase';
 import { TasksModel } from '../../shared/models/tasks-model';
 import { ContactsModel } from '../../shared/models/contacts-model';
+import { CategoryModel } from '../../shared/models/category-model';
 
 /**
  * Kanban board component that displays tasks in status-based columns.
@@ -185,7 +186,7 @@ export class Board {
     task.title = payload.title;
     task.description = payload.description;
     task.priority = this.reversePriority(payload.priority);
-    task.date = this.parseDisplayDate(payload.dueDate);
+    task.date = TasksModel.parseDate(payload.dueDate) ?? new Date();
     task.member = [...payload.memberIds];
     task.subtasks = payload.subtasks.map(s => ({ id: s.id, title: s.title, done: s.done }));
     this.refreshAndPersist(task);
@@ -218,9 +219,9 @@ export class Board {
       id: String(task.id),
       title: task.title,
       description: task.description,
-      dueDate: this.formatDate(task.dateISO),
+      dueDate: task.dateDisplay,      
       priority: this.mapPriority(task.priority),
-      category: this.mapCategory(task.category),
+      category: task.getCategory(),   
       assignees: this.resolveAssignees(task.member, contacts),
       memberIds: [...task.member],
       subtasks: task.subtasks.map(s => ({ id: s.id, title: s.title, done: s.done })),
@@ -239,13 +240,6 @@ export class Board {
   }
 
   /**
-   * Maps a category ID string ('1' or '2') to a human-readable BoardCategory.
-   */
-  private mapCategory(value: number): BoardCategory {
-    return value === 1 ? 'Technical Task' : 'User Story';
-  }
-
-  /**
    * Resolves an array of contact IDs into BoardAssignee objects with initials, name and color.
    * Silently skips IDs that no longer exist in the contacts list.
    */
@@ -257,24 +251,6 @@ export class Board {
       result.push({ initials: c.getInitials(), fullName: c.full_name, color: c.avatar_color });
     }
     return result;
-  }
-
-  /**
-   * Formats an ISO date string into DD/MM/YYYY for display.
-   */
-  private formatDate(iso: string): string {
-    if (!iso) return '';
-    const d = new Date(iso);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    return `${day}/${month}/${d.getFullYear()}`;
-  }
-
-  /** Parses a DD/MM/YYYY display date back into a Date object. */
-  private parseDisplayDate(display: string): Date {
-    const parts = display.split('/');
-    if (parts.length !== 3) return new Date();
-    return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
   }
 
   /** Reverse-maps a BoardPriority label to its numeric DB value. */

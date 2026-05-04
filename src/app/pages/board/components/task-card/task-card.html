@@ -1,8 +1,9 @@
-<span
-  class="category-badge"
-  [class.category-user-story]="task.category === 'User Story'"
-  [class.category-technical-task]="task.category === 'Technical Task'"
->{{ task.category }}</span>
+@if (task.category) {
+  <span
+    class="category-badge"
+    [style.background-color]="task.category.color"
+  >{{ task.category.name }}</span>
+}
 
 @if (columns.length) {
   <button

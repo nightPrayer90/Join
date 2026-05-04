@@ -6,9 +6,9 @@ import { Supabase } from '../../../../service/supabase';
 import { Subtask } from '../../../../shared/interface/tasks-interface';
 import { TasksModel } from '../../../../shared/models/tasks-model';
 import { ContactsModel } from '../../../../shared/models/contacts-model';
+import { CategoryModel } from '../../../../shared/models/category-model';
 
 type PriorityKey = 1 | 2 | 3;
-type CategoryOption = { id: number; label: string };
 
 @Component({
   selector: 'app-board-add-task-dialog',
@@ -22,6 +22,7 @@ export class BoardAddTaskDialog implements OnInit {
   @Output() closed = new EventEmitter<void>();
 
   dbService = inject(Supabase);
+  readonly categories = CategoryModel.LIST;
   private host = inject(ElementRef<HTMLElement>);
 
   title = '';
@@ -39,11 +40,6 @@ export class BoardAddTaskDialog implements OnInit {
 
   isSaving = signal(false);
   selectedMemberIds = signal<number[]>([]);
-
-  readonly categories: CategoryOption[] = [
-    { id: 1, label: 'Technical Tasks' },
-    { id: 2, label: 'User Story' },
-  ];
 
   assignedLabel = computed(() => {
     const ids = this.selectedMemberIds();
@@ -120,14 +116,15 @@ export class BoardAddTaskDialog implements OnInit {
     }
   }
 
-  selectCategory(cat: CategoryOption): void {
-    this.categoryId = cat.id;
-    this.categoryOpen = false;
-  }
+  selectCategory(cat: CategoryModel): void {
+  this.categoryId = cat.id;
+  this.categoryOpen = false;
+}
+
 
   categoryLabel(): string {
-    return this.categories.find(c => c.id === this.categoryId)?.label ?? '';
-  }
+  return CategoryModel.findById(this.categoryId)?.name ?? '';
+}
 
   contactInitials(name: string): string {
     const parts = name.trim().split(/\s+/).filter(Boolean);

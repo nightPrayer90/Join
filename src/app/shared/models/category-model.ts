@@ -7,7 +7,7 @@ export class CategoryModel implements Category {
 
   /** Static list of all available categories. */
   static readonly LIST: CategoryModel[] = [
-    new CategoryModel({ id: 1, name: 'Technical Tasks', color: '#1FD7C1' }),
+    new CategoryModel({ id: 1, name: 'Technical Task', color: '#1FD7C1' }),
     new CategoryModel({ id: 2, name: 'User Story', color: '#0038FF' }),
   ];
 
