@@ -121,7 +121,7 @@
           <label class="edit-assigned-item" (click)="$event.stopPropagation()">
             <span class="edit-assigned-user">
               <span class="edit-assigned-avatar" [style.background-color]="contact.avatar_color">{{
-                contactInitials(contact.full_name) }}</span>
+                contact.getInitials() }}</span>
               <span class="edit-assigned-name">{{ contact.full_name }}</span>
             </span>
             <input class="edit-assigned-checkbox" type="checkbox" [checked]="isEditMemberSelected(contact.id)"
@@ -136,7 +136,7 @@
         @for (contact of dbService.contactsList(); track contact.id) {
         @if (isEditMemberSelected(contact.id)) {
         <span class="edit-assigned-selected-avatar" [style.background-color]="contact.avatar_color">{{
-          contactInitials(contact.full_name) }}</span>
+          contact.getInitials() }}</span>
         }
         }
       </div>

@@ -126,13 +126,6 @@ export class BoardAddTaskDialog implements OnInit {
   return CategoryModel.findById(this.categoryId)?.name ?? '';
 }
 
-  contactInitials(name: string): string {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    const f = parts[0]?.charAt(0).toUpperCase() ?? '';
-    const l = parts.length > 1 ? parts[parts.length - 1].charAt(0).toUpperCase() : f;
-    return `${f}${l}`;
-  }
-
   addSubtask(): void {
     const t = this.subtaskInput.trim();
     if (!t) return;
