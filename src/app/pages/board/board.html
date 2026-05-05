@@ -96,10 +96,3 @@
     (taskUpdated)="onTaskUpdated($event)"
   />
 }
-
-@if (showAddDialog()) {
-  <app-board-add-task-dialog
-    [presetStatus]="addDialogStatus()"
-    (closed)="closeAddDialog()"
-  />
-}

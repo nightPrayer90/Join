@@ -60,7 +60,7 @@
           <label class="field-label">Assigned to</label>
           <div class="select-wrapper assigned-select">
             <div class="select-field" [class.open]="assignedOpen">
-              <input type="text" [value]="assignedOpen ? '' : 'Select contacts to assign'" readonly (click)="toggleAssigned($event)">
+              <input type="text" [value]="assignedOpen ? 'An' : 'Select contacts to assign'" readonly (click)="toggleAssigned($event)">
               <span class="select-arrow" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M7 10L12 15L17 10"/></svg>
               </span>
@@ -76,6 +76,7 @@
                     <input class="assigned-checkbox" type="checkbox" [checked]="isMemberSelected(contact.id)" (change)="toggleMember(contact.id)">
                   </label>
                 }
+                <button type="button" class="btn-primary assigned-ok-btn" (click)="assignedOpen = false">Ok ✓</button>
               </div>
             }
           </div>

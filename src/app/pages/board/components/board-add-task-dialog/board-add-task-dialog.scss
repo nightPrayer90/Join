@@ -252,6 +252,12 @@ textarea {
   inset: calc(100% - 2px) 0 auto 0;
 }
 
+.assigned-select .select-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .assigned-item {
   display: flex;
   align-items: flex-start;
@@ -264,6 +270,18 @@ textarea {
 
   &:hover {
     background: #f2f2f2;
+  }
+
+  &:has(.assigned-checkbox:checked) {
+    background: $color-primary;
+
+    .assigned-name {
+      color: #ffffff;
+    }
+
+    .assigned-checkbox {
+      filter: brightness(0) invert(1);
+    }
   }
 }
 
@@ -307,11 +325,20 @@ textarea {
 .assigned-selected-list {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 8px;
   margin: -8px 0 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .assigned-selected-avatar {
+  flex-shrink: 0;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -337,6 +364,10 @@ textarea {
   &:hover {
     background: #f2f2f2;
   }
+}
+
+.assigned-ok-btn {
+  display: none;
 }
 
 .subtask-input-wrap {
@@ -532,6 +563,13 @@ textarea {
   .btn-create {
     font-size: 16px;
     padding: 0 16px;
+  }
+
+  .assigned-ok-btn {
+    display: flex;
+    margin: 12px 0 4px auto;
+    height: 56px;
+    font-size: 20px;
   }
 }
 

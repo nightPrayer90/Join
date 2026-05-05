@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, computed, inject, signal} from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Supabase } from '../../service/supabase';
 import { ContactsModel } from '../../shared/models/contacts-model';
 import { TasksModel } from '../../shared/models/tasks-model';
@@ -16,8 +17,8 @@ type PriorityKey = 1 | 2 | 3;
 })
 export class AddTask implements OnInit, OnDestroy {
   dbService = inject(Supabase);
+  private router = inject(Router);
   readonly categories = CategoryModel.LIST;
-  private host = inject(ElementRef<HTMLElement>);
 
   // Form fields
   title = '';
@@ -65,8 +66,6 @@ export class AddTask implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!this.host.nativeElement.contains(target)) return;
-
     const insideAssigned = !!target.closest('.assigned-select');
     const insideCategory = !!target.closest('.category-select');
     if (!insideAssigned) {
@@ -84,7 +83,7 @@ export class AddTask implements OnInit, OnDestroy {
    * While closed: shows the placeholder text.
    */
   assignedInputValue(): string {
-    if (this.assignedOpen) return this.assignedSearch;
+    if (this.assignedOpen) return 'An';
     return 'Select contacts to assign';
   }
 
@@ -92,7 +91,7 @@ export class AddTask implements OnInit, OnDestroy {
   toggleAssignedDropdown(event: MouseEvent): void {
     event.stopPropagation();
     this.assignedOpen = !this.assignedOpen;
-    if (!this.assignedOpen) this.assignedSearch = '';
+    this.assignedSearch = '';
     this.categoryOpen = false;
   }
 
@@ -100,6 +99,7 @@ export class AddTask implements OnInit, OnDestroy {
   openAssignedDropdown(event: MouseEvent): void {
     event.stopPropagation();
     this.assignedOpen = true;
+    this.assignedSearch = '';
     this.categoryOpen = false;
   }
 
@@ -148,6 +148,7 @@ export class AddTask implements OnInit, OnDestroy {
     event.stopPropagation();
     this.categoryOpen = !this.categoryOpen;
     this.assignedOpen = false;
+    this.assignedSearch = '';
   }
 
   /** Returns the label of the currently selected category, or '' if none. */
@@ -337,7 +338,7 @@ export class AddTask implements OnInit, OnDestroy {
     }
     this.clearForm();
     this.submitted = false;
-    this.openToast();
+    this.openToast(true);
   }
 
   /** Resets the entire form to its initial empty state. */
@@ -364,12 +365,13 @@ export class AddTask implements OnInit, OnDestroy {
   }
 
   /** TOAST NOTIFICATION - Shows the success toast and hides it again after 2.5 seconds. */
-  private openToast(): void {
+  private openToast(redirectToBoard = false): void {
     if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
     this.showToast.set(true);
     this.toastTimeoutId = window.setTimeout(() => {
       this.showToast.set(false);
       this.toastTimeoutId = null;
+      if (redirectToBoard) this.router.navigateByUrl('/board');
     }, 2500);
   }
 }

@@ -11,7 +11,7 @@
 
 .add-task-page {
   min-height: calc(100vh - 96px);
-  padding: 132px 100px 28px;
+  padding: 132px clamp(32px, 7vw, 100px) 28px;
   background: $color-bg-page;
   box-sizing: border-box;
   font-family: $font-family-base;
@@ -46,6 +46,7 @@ h1 {
 .form-left,
 .form-right {
   width: 100%;
+  min-width: 0;
 }
 
 .form-divider {
@@ -101,6 +102,7 @@ textarea {
 
 .input-with-icon {
   @include input-wrapper;
+  height: 48px;
   margin-bottom: 0;
 
   input {
@@ -121,9 +123,11 @@ textarea {
 
 .field-icon-btn {
   position: absolute;
-  top: 50%;
+  top: 0;
+  bottom: 0;
   right: 16px;
-  transform: translateY(-50%);
+  margin: auto 0;
+  transform: none;
   width: 24px;
   height: 24px;
   border: none;
@@ -131,7 +135,6 @@ textarea {
   padding: 0;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   cursor: pointer;
 
   svg {
@@ -213,8 +216,6 @@ textarea {
 .priority-option input:checked + .priority-btn {
   color: #ffffff;
   border-color: transparent;
-  font-weight: $font-weight-bold;
-  font-size: 21px;
   box-shadow: none;
 }
 
@@ -277,7 +278,6 @@ textarea {
   transform-origin: center;
   pointer-events: auto;
   cursor: pointer;
-  transition: transform 100ms ease-in-out;
 
   svg {
     width: 18px;
@@ -320,12 +320,14 @@ textarea {
   min-width: 0;
   padding: 10px 14px;
   border-radius: 12px;
-  cursor: pointer;
+  margin-bottom: 4px;
 
-  &:hover {
-    background: #f2f2f2;
+  &:has(.assigned-checkbox:checked) {
+    background: $color-primary;
+    color: #ffffff;
+
+    .assigned-check { filter: brightness(0) invert(1); }
   }
-
 }
 
 .assigned-user {
@@ -356,7 +358,6 @@ textarea {
   flex: 1;
   min-width: 0;
   font-size: 20px;
-  color: $color-text;
   overflow-wrap: anywhere;
 }
 
@@ -407,19 +408,25 @@ textarea {
 
 .assigned-selected-list {
   display: flex;
-  align-items: center;
+  flex-wrap: nowrap;
   gap: 10px;
   margin: -8px 0 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .assigned-selected-avatar {
+  flex-shrink: 0;
   width: 42px;
   height: 42px;
   border-radius: 50%;
   color: #ffffff;
   font-size: 18px;
-  font-weight: 400;
-  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -599,7 +606,7 @@ textarea {
   grid-column: 1;
   margin: 0;
   min-height: 24px;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: $font-weight-regular;
   line-height: 1.2;
   color: #000;
@@ -633,14 +640,21 @@ textarea {
 }
 
 .task-btn-primary {
-  @include btn-primary;
+  @include btn-base;
   font-weight: $font-weight-bold;
   font-size: 21px;
   background: $color-primary;
   border-color: $color-primary;
+  color: $color-bg-surface;
 
-  &:hover,
-  &:focus-visible {
+  &:active:not(:disabled) {
+    background: $color-accent;
+    border-color: $color-accent;
+  }
+}
+
+@media (hover: hover) {
+  .task-btn-primary:hover:not(:disabled) {
     background: $color-accent;
     border-color: $color-accent;
   }
@@ -649,45 +663,35 @@ textarea {
 .btn-close,
 .btn-check {
   font-size: 28px;
-  line-height: 1;
   display: inline-flex;
   align-items: center;
-  font-weight: $font-weight-regular;
 }
 
 .task-toast {
   position: fixed;
   left: 50%;
-  top: 56%;
+  bottom: 24px;
   display: inline-flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  min-width: 326px;
+  height: 74px;
   background: $color-primary;
   color: #fff;
-  padding: 24px 32px;
+  padding: 0 24px;
   border-radius: 20px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
   transform: translate(-50%, 120px);
-  opacity: 0;
   font-size: 20px;
-  z-index: 20;
-  pointer-events: none;
-  will-change: transform, opacity;
-  transition: transform 220ms ease-in-out, opacity 220ms ease-in-out;
+  transition: transform 0.22s ease-out;
 }
 
 .task-toast.show {
-  transform: translate(-50%, 0);
-  opacity: 1;
-}
-
-.toast-icon {
-  font-size: 28px;
+  transform: translate(-50%, -45vh);
 }
 
 @include notebook {
   .add-task-page {
-    padding: 110px 32px 24px;
+    padding: 72px 32px 32px;
   }
 
   .form-columns {
@@ -705,19 +709,32 @@ textarea {
 
   .form-footer {
     margin-top: 36px;
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
-    display: flex;
+    gap: 20px;
   }
 
   .footer-actions {
     align-self: flex-end;
+    grid-column: auto;
+  }
+
+  .required-note {
+    grid-column: auto;
   }
 }
 
 @include tablet {
+  :host {
+    height: calc(100vh - 96px - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
   .add-task-page {
-    padding: 98px 20px 24px;
+    min-height: auto;
+    padding: 40px 20px 32px;
   }
 
   h1 {
@@ -725,34 +742,89 @@ textarea {
     margin-bottom: 24px;
   }
 
-  .field-label {
-    font-size: 20px;
-  }
-
-  .priority-btn {
-    font-size: 20px;
-  }
-
-  .task-btn-secondary,
-  .task-btn-primary {
-    font-size: 20px;
-  }
 }
 
 @include mobile {
+  .add-task-page {
+    padding: 32px 16px 20px;
+  }
+
+  h1 {
+    font-size: 47px;
+    margin-bottom: 28px;
+  }
+
+  .field-label {
+    font-size: 16px;
+  }
+
+  input,
+  textarea {
+    font-size: 16px;
+    padding-left: 16px;
+  }
+
+  textarea {
+    min-height: 104px;
+  }
+
+  .form-left input,
+  .form-left textarea,
+  .form-right > input,
+  .select-wrapper,
+  .input-with-icon {
+    margin-bottom: 24px;
+  }
+
   .priority-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1.2fr 0.85fr;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .priority-btn {
+    height: 36px;
+    padding: 0 4px;
+    font-size: 16px;
+  }
+
+  .assigned-avatar,
+  .assigned-selected-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .assigned-name,
+  .category-item {
+    font-size: 16px;
+  }
+
+  .form-footer {
+    margin-top: 12px;
   }
 
   .footer-actions {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 12px;
   }
 
   .task-btn-secondary,
   .task-btn-primary {
-    font-size: 20px;
-    padding: 10px 14px;
+    height: 40px;
+    font-size: 16px;
+    padding: 0 12px;
+  }
+
+  .assigned-ok-btn {
+    display: flex !important;
+  }
+
+  .task-toast {
+    bottom: 96px;
+    min-width: 276px;
+    height: 60px;
+    font-size: 16px;
   }
 }

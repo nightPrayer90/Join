@@ -130,8 +130,7 @@
           <label class="field-label" for="assigned-to">Assigned to</label>
           <div class="select-wrapper assigned-select">
             <div class="select-field" [class.open]="assignedOpen">
-              <input id="assigned-to" type="text" [value]="assignedInputValue()" (click)="openAssignedDropdown($event)"
-                (input)="onAssignedInput($event)">
+              <input id="assigned-to" type="text" [value]="assignedInputValue()" readonly (click)="openAssignedDropdown($event)">
               <span class="select-arrow" aria-hidden="true" (click)="toggleAssignedDropdown($event)">
                 <svg viewBox="0 0 24 24">
                   <path d="M7 10L12 15L17 10" />
@@ -183,6 +182,7 @@
                 </span>
               </label>
               }
+              <button type="button" class="btn-primary assigned-ok-btn" style="display:none;margin:12px 0 4px auto;height:56px" (click)="assignedOpen = false; assignedSearch = ''">Ok ✓</button>
             </div>
             }
           </div>
@@ -323,7 +323,7 @@
           </button>
 
           <!-- Submit button: creates the task in the database -->
-          <button type="submit" class="btn-primary task-btn-primary" [disabled]="isSaving()">
+          <button type="submit" class="task-btn-primary" [disabled]="isSaving()">
             <span>Create Task</span>
             <span class="btn-check" aria-hidden="true">✓</span>
           </button>
