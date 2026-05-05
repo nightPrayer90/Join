@@ -28,6 +28,7 @@ export class BoardAddTaskDialog implements OnInit {
   title = '';
   description = '';
   dueDateText = '';
+  minDateISO = '';
   priority: PriorityKey = 2;
   categoryId: number | null = null;
   subtaskInput = '';
@@ -63,6 +64,7 @@ export class BoardAddTaskDialog implements OnInit {
   });
 
   ngOnInit(): void {
+    this.minDateISO = TasksModel.todayISO();
     this.dbService.getContacts();
   }
 
@@ -84,6 +86,9 @@ export class BoardAddTaskDialog implements OnInit {
   }
 
   onPanelClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.assigned-select')) this.assignedOpen = false;
+    if (!target.closest('.category-select')) this.categoryOpen = false;
     event.stopPropagation();
   }
 
@@ -157,8 +162,26 @@ export class BoardAddTaskDialog implements OnInit {
     if (digits.length > 0) parts.push(digits.slice(0, 2));
     if (digits.length > 2) parts.push(digits.slice(2, 4));
     if (digits.length > 4) parts.push(digits.slice(4, 8));
-    this.dueDateText = parts.join('.');
+    this.dueDateText = parts.join('/');
     input.value = this.dueDateText;
+  }
+
+  openDatePicker(dateInput: HTMLInputElement): void {
+    if (typeof dateInput.showPicker === 'function') {
+      dateInput.showPicker();
+      return;
+    }
+    dateInput.click();
+  }
+
+  onDatePickerChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    if (!value) return;
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return;
+    this.dueDateText = `${match[3]}/${match[2]}/${match[1]}`;
+    this.dueDateTouched = true;
   }
 
   onDueDateBlur(): void {

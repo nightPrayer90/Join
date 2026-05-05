@@ -409,14 +409,20 @@ textarea {
 .assigned-selected-list {
   display: flex;
   flex-wrap: nowrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 10px;
   margin: -8px 0 18px;
   overflow-x: auto;
-  scrollbar-width: none;
   mask: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
 
   &::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #aaa;
   }
 }
 
@@ -740,6 +746,14 @@ textarea {
   h1 {
     font-size: 47px;
     margin-bottom: 24px;
+  }
+
+  .assigned-selected-list {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
 }
