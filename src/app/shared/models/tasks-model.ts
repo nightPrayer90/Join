@@ -240,5 +240,17 @@ export class TasksModel {
     const d = `${t.getDate()}`.padStart(2, '0');
     return `${t.getFullYear()}-${m}-${d}`;
   }
+
+  /**
+   * Returns the date formatted as DD/MM/YYYY for display purposes.
+   * @returns {string}
+   */
+  get dateDisplay(): string {
+    if (!this._date) return '';
+    const d = new Date(this._date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${day}/${month}/${d.getFullYear()}`;
+  }
   //#endregion
 }

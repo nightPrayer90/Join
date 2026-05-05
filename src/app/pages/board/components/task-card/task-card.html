@@ -1,100 +1,122 @@
-<span
-  class="category-badge"
-  [class.category-user-story]="task.category === 'User Story'"
-  [class.category-technical-task]="task.category === 'Technical Task'"
->{{ task.category }}</span>
-
-@if (columns.length) {
-  <button
-    type="button"
-    class="move-btn"
-    [class.is-open]="menuOpen()"
-    aria-label="Move task to another column"
-    [attr.aria-expanded]="menuOpen()"
-    aria-haspopup="menu"
-    draggable="false"
-    (click)="toggleMenu($event)"
-    (keydown.enter)="stopKey($event)"
-    (keydown.space)="stopKey($event)"
-  >
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </button>
-
-  @if (menuOpen()) {
-    <div
-      class="move-menu"
-      role="menu"
-      (click)="$event.stopPropagation()"
-      (keydown.enter)="stopKey($event)"
-      (keydown.space)="stopKey($event)"
-    >
-      <p class="move-menu-heading">Move to</p>
-      @for (col of columns; track col.key) {
-        <button
-          type="button"
-          class="move-menu-item"
-          role="menuitem"
-          [class.is-current]="col.key === task.status"
-          [disabled]="col.key === task.status"
-          (click)="selectStatus($event, col.key)"
-          (keydown.enter)="stopKey($event)"
-          (keydown.space)="stopKey($event)"
-        >{{ col.title }}</button>
-      }
-    </div>
-  }
+<!-- Category badge -->
+@if (task.category) {
+<span class="category-badge" [style.background-color]="task.category.color">{{ task.category.name }}</span>
 }
 
+<!-- Move button + dropdown menu -->
+@if (columns.length) {
+<button type="button" class="move-btn" [class.is-open]="menuOpen" aria-label="Move task to another column"
+  [attr.aria-expanded]="menuOpen" aria-haspopup="menu" draggable="false" (click)="toggleMenu($event)"
+  (keydown.enter)="stopKey($event)" (keydown.space)="stopKey($event)">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+</button>
+
+<!-- Move menu (visible when toggled) -->
+@if (menuOpen) {
+<div class="move-menu" role="menu" (click)="$event.stopPropagation()" (keydown.enter)="stopKey($event)"
+  (keydown.space)="stopKey($event)">
+  <p class="move-menu__heading">Move to</p>
+
+  <!-- Loop available columns, skip current status -->
+  @for (col of columns; track col.key) {
+  @if (col.key !== task.status) {
+
+  <button type="button" class="move-menu__item" role="menuitem" [class.is-current]="col.key === task.status"
+    [disabled]="col.key === task.status" (click)="selectStatus($event, col.key)" (keydown.enter)="stopKey($event)"
+    (keydown.space)="stopKey($event)">
+
+    <!-- Direction arrow: up if target column comes after, down if before -->
+    @if (getColumnOrder(col.key) < getColumnOrder(task.status)) {
+    <!-- Up arrow icon -->
+    <svg width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <mask id="mask0_294678_9879" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="-1" width="20"
+        height="20">
+        <rect y="-1" width="20" height="20" fill="currentColor" />
+      </mask>
+      <g mask="url(#mask0_294678_9879)">
+        <path
+          d="M9.16676 5.52059L5.08342 9.60392C4.91676 9.77059 4.72231 9.85045 4.50009 9.84351C4.27787 9.83656 4.08342 9.74976 3.91676 9.58309C3.76398 9.41642 3.68412 9.22198 3.67717 8.99976C3.67023 8.77753 3.75009 8.58309 3.91676 8.41642L9.41676 2.91642C9.50009 2.83309 9.59037 2.77406 9.68759 2.73934C9.78481 2.70462 9.88898 2.68726 10.0001 2.68726C10.1112 2.68726 10.2154 2.70462 10.3126 2.73934C10.4098 2.77406 10.5001 2.83309 10.5834 2.91642L16.0834 8.41642C16.2362 8.5692 16.3126 8.76017 16.3126 8.98934C16.3126 9.21851 16.2362 9.41642 16.0834 9.58309C15.9168 9.74976 15.7188 9.83309 15.4897 9.83309C15.2605 9.83309 15.0626 9.74976 14.8959 9.58309L10.8334 5.52059V14.8331C10.8334 15.0692 10.7536 15.2671 10.5938 15.4268C10.4341 15.5866 10.2362 15.6664 10.0001 15.6664C9.76398 15.6664 9.56606 15.5866 9.40634 15.4268C9.24662 15.2671 9.16676 15.0692 9.16676 14.8331V5.52059Z"
+          fill="currentColor" />
+      </g>
+    </svg>
+    }
+    @else {
+    <!-- Down arrow icon -->
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <mask id="mask0_294678_9865" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="20"
+        height="20">
+        <rect width="20" height="20" fill="currentColor" />
+      </mask>
+      <g mask="url(#mask0_294678_9865)">
+        <path
+          d="M9.16764 13.4793V4.16683C9.16764 3.93072 9.2475 3.7328 9.40723 3.57308C9.56695 3.41336 9.76487 3.3335 10.001 3.3335C10.2371 3.3335 10.435 3.41336 10.5947 3.57308C10.7544 3.7328 10.8343 3.93072 10.8343 4.16683V13.4793L14.9176 9.396C15.0843 9.22933 15.2788 9.14947 15.501 9.15641C15.7232 9.16336 15.9176 9.25016 16.0843 9.41683C16.2371 9.5835 16.3169 9.77794 16.3239 10.0002C16.3308 10.2224 16.251 10.4168 16.0843 10.5835L10.5843 16.0835C10.501 16.1668 10.4107 16.2259 10.3135 16.2606C10.2163 16.2953 10.1121 16.3127 10.001 16.3127C9.88987 16.3127 9.7857 16.2953 9.68848 16.2606C9.59125 16.2259 9.50098 16.1668 9.41764 16.0835L3.91764 10.5835C3.76487 10.4307 3.68848 10.2397 3.68848 10.0106C3.68848 9.78141 3.76487 9.5835 3.91764 9.41683C4.08431 9.25016 4.28223 9.16683 4.51139 9.16683C4.74056 9.16683 4.93848 9.25016 5.10514 9.41683L9.16764 13.4793Z"
+          fill="currentColor" />
+      </g>
+    </svg>
+    }
+    {{ col.title }}
+  </button>
+  }
+  }
+</div>
+}
+}
+
+<!-- Title and description -->
 <div class="task-text">
   <h3 class="task-title">{{ task.title }}</h3>
   <p class="task-description">{{ task.description }}</p>
 </div>
 
+<!-- Subtask progress bar -->
 @if (totalSubtasks > 0) {
-  <div class="subtasks-progress" aria-label="Subtask progress">
-    <div class="progress-track" [attr.aria-valuenow]="doneSubtasks" [attr.aria-valuemax]="totalSubtasks" role="progressbar">
-      <div class="progress-fill" [style.width.%]="progressPercent"></div>
-    </div>
-    <span class="progress-label">{{ doneSubtasks }}/{{ totalSubtasks }} Subtasks</span>
+<div class="subtasks-progress" aria-label="Subtask progress">
+  <div class="progress-track" [attr.aria-valuenow]="doneSubtasks" [attr.aria-valuemax]="totalSubtasks"
+    role="progressbar">
+    <div class="progress-fill" [style.width.%]="progressPercent"></div>
   </div>
+  <span class="progress-label">{{ doneSubtasks }}/{{ totalSubtasks }} Subtasks</span>
+</div>
 }
 
+<!-- Footer: assignees + priority -->
 <footer class="task-footer">
   <ul class="assignee-stack" aria-label="Assigned to">
     @for (a of visibleAssignees; track a.initials + a.fullName) {
-      <li class="assignee" [style.background-color]="a.color" [title]="a.fullName">
-        <span>{{ a.initials }}</span>
-      </li>
+    <li class="assignee" [style.background-color]="a.color" [title]="a.fullName">
+      <span>{{ a.initials }}</span>
+    </li>
     }
     @if (hiddenAssigneesCount > 0) {
-      <li class="assignee assignee-overflow" title="More assignees">
-        <span>+{{ hiddenAssigneesCount }}</span>
-      </li>
+    <li class="assignee assignee-overflow" title="More assignees">
+      <span>+{{ hiddenAssigneesCount }}</span>
+    </li>
     }
   </ul>
 
+    <!-- Priority icon (urgent/medium/low) -->
   <span class="priority-icon" [attr.aria-label]="'Priority ' + task.priority">
     @switch (task.priority) {
-      @case ('urgent') {
-        <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M20 14L11 5L2 14" stroke="#FF3D00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20 9L11 0L2 9" stroke="#FF3D00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      }
-      @case ('medium') {
-        <svg width="22" height="10" viewBox="0 0 22 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect y="0" width="22" height="3" rx="1.5" fill="#FFA800"/>
-          <rect y="7" width="22" height="3" rx="1.5" fill="#FFA800"/>
-        </svg>
-      }
-      @case ('low') {
-        <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M2 2L11 11L20 2" stroke="#7AE229" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 7L11 16L20 7" stroke="#7AE229" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      }
+    @case ('urgent') {
+    <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M20 14L11 5L2 14" stroke="#FF3D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M20 9L11 0L2 9" stroke="#FF3D00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    }
+    @case ('medium') {
+    <svg width="22" height="10" viewBox="0 0 22 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect y="0" width="22" height="3" rx="1.5" fill="#FFA800" />
+      <rect y="7" width="22" height="3" rx="1.5" fill="#FFA800" />
+    </svg>
+    }
+    @case ('low') {
+    <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M2 2L11 11L20 2" stroke="#7AE229" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M2 7L11 16L20 7" stroke="#7AE229" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    }
     }
   </span>
 </footer>
