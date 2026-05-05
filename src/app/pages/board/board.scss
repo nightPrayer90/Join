@@ -292,6 +292,20 @@
   }
 }
 
+.btn-hide-on-mobile{
+  display: block;
+  @include tablet {
+    display: none;
+  }
+}
+
+.btn-show-on-mobile{
+  display: none;
+  @include tablet {
+    display: block;
+  }
+}
+
 @media (max-width: 1276px) and (min-width: 769px) {
   .board-page {
     padding: 32px 16px 0;

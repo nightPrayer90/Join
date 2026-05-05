@@ -1,9 +1,17 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BoardAssignee, BoardColumn, BoardPriority, BoardStatus, BoardSubtask, BoardTask } from './data/board-task.types';
+import {
+  BoardAssignee,
+  BoardColumn,
+  BoardPriority,
+  BoardStatus,
+  BoardSubtask,
+  BoardTask,
+} from './data/board-task.types';
 import { TaskCard } from './components/task-card/task-card';
 import { TaskDetailDialog } from './components/task-detail-dialog/task-detail-dialog';
+import { BoardAddTaskDialog } from './components/board-add-task-dialog/board-add-task-dialog';
 import { Supabase } from '../../service/supabase';
 import { TasksModel } from '../../shared/models/tasks-model';
 import { ContactsModel } from '../../shared/models/contacts-model';
@@ -18,7 +26,7 @@ import { ContactsModel } from '../../shared/models/contacts-model';
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [FormsModule, TaskCard, TaskDetailDialog],
+  imports: [FormsModule, TaskCard, TaskDetailDialog, BoardAddTaskDialog],
   templateUrl: './board.html',
   styleUrl: './board.scss',
 })
@@ -27,10 +35,10 @@ export class Board {
   private router = inject(Router);
 
   readonly columns: BoardColumn[] = [
-    { key: 'todo',           title: 'To do' },
-    { key: 'in-progress',    title: 'In progress' },
+    { key: 'todo', title: 'To do' },
+    { key: 'in-progress', title: 'In progress' },
     { key: 'await-feedback', title: 'Await feedback' },
-    { key: 'done',           title: 'Done' },
+    { key: 'done', title: 'Done' },
   ];
 
   readonly searchTerm = signal<string>('');
@@ -39,19 +47,22 @@ export class Board {
   readonly draggingTaskId = signal<string | null>(null);
   readonly dropTarget = signal<{ column: BoardStatus; index: number } | null>(null);
 
+  readonly showAddDialog = signal(false);
+  readonly addDialogStatus = signal<BoardStatus>('todo');
+
   readonly openMenuTaskId = signal<string | null>(null);
 
   readonly tasks = computed(() => {
     const models = this.dbService.tasksList();
     const contacts = this.dbService.contactsList();
-    return models.map(t => this.mapTask(t, contacts));
+    return models.map((t) => this.mapTask(t, contacts));
   });
 
   readonly filtered = computed(() => {
     const q = this.searchTerm().trim().toLowerCase();
     if (!q) return this.tasks();
     return this.tasks().filter(
-      t => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q),
+      (t) => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q),
     );
   });
 
@@ -60,7 +71,7 @@ export class Board {
    */
   tasksByStatus(status: BoardStatus): BoardTask[] {
     return this.filtered()
-      .filter(t => t.status === status)
+      .filter((t) => t.status === status)
       .sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
@@ -131,7 +142,8 @@ export class Board {
     this.draggingTaskId.set(null);
     this.dropTarget.set(null);
     if (!id) return;
-    const insertIdx = (target && target.column === status) ? target.index : this.tasksByStatus(status).length;
+    const insertIdx =
+      target && target.column === status ? target.index : this.tasksByStatus(status).length;
     this.persistDrop(Number(id), status, insertIdx);
   }
 
@@ -152,15 +164,26 @@ export class Board {
   }
 
   /** Opens the shared add-task page from every board add-task entry point. */
-  openAddDialog(_status: BoardStatus): void {
+  openAddPage(_status: BoardStatus): void {
     this.router.navigate(['/add-task'], { queryParams: { from: 'board' } });
+  }
+
+  /** Opens the add-task dialog, optionally pre-setting the target column. */
+  openAddDialog(status: BoardStatus): void {
+    this.addDialogStatus.set(status);
+    this.showAddDialog.set(true);
+  }
+
+  /** Closes the add-task dialog. */
+  closeAddDialog(): void {
+    this.showAddDialog.set(false);
   }
 
   /** Toggles a subtask's done state and persists it to Supabase. */
   onSubtaskToggle(taskId: string, subtaskId: number): void {
     const task = this.findTaskModel(taskId);
     if (!task) return;
-    const sub = task.subtasks.find(s => s.id === subtaskId);
+    const sub = task.subtasks.find((s) => s.id === subtaskId);
     if (!sub) return;
     task.updateSubtaskDone(subtaskId, !sub.done);
     this.refreshAndPersist(task);
@@ -174,7 +197,15 @@ export class Board {
   }
 
   /** Applies inline-edit changes back to the TasksModel and persists. */
-  onTaskUpdated(payload: { id: string; title: string; description: string; priority: BoardPriority; dueDate: string; memberIds: number[]; subtasks: BoardSubtask[] }): void {
+  onTaskUpdated(payload: {
+    id: string;
+    title: string;
+    description: string;
+    priority: BoardPriority;
+    dueDate: string;
+    memberIds: number[];
+    subtasks: BoardSubtask[];
+  }): void {
     const task = this.findTaskModel(payload.id);
     if (!task) return;
     task.title = payload.title;
@@ -182,7 +213,7 @@ export class Board {
     task.priority = this.reversePriority(payload.priority);
     task.date = TasksModel.parseDate(payload.dueDate) ?? new Date();
     task.member = [...payload.memberIds];
-    task.subtasks = payload.subtasks.map(s => ({ id: s.id, title: s.title, done: s.done }));
+    task.subtasks = payload.subtasks.map((s) => ({ id: s.id, title: s.title, done: s.done }));
     this.refreshAndPersist(task);
     this.refreshSelectedTask(payload.id);
   }
@@ -190,18 +221,18 @@ export class Board {
   /** Moves a task to a target column at a specific index, reorders, and persists all changes. */
   private persistDrop(id: number, status: BoardStatus, insertIdx: number): void {
     const allTasks = this.dbService.tasksList();
-    const moved = allTasks.find(t => t.id === id);
+    const moved = allTasks.find((t) => t.id === id);
     if (!moved) return;
     moved.task_status = status;
     const columnTasks = allTasks
-      .filter(t => t.task_status === status && t.id !== id)
+      .filter((t) => t.task_status === status && t.id !== id)
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
     columnTasks.splice(insertIdx, 0, moved);
     for (let i = 0; i < columnTasks.length; i++) {
       columnTasks[i].sort_order = i;
       this.dbService.updateTask(columnTasks[i]);
     }
-    this.dbService.tasksList.update(list => [...list]);
+    this.dbService.tasksList.update((list) => [...list]);
   }
 
   /**
@@ -213,12 +244,12 @@ export class Board {
       id: String(task.id),
       title: task.title,
       description: task.description,
-      dueDate: task.dateDisplay,      
+      dueDate: task.dateDisplay,
       priority: this.mapPriority(task.priority),
-      category: task.getCategory(),   
+      category: task.getCategory(),
       assignees: this.resolveAssignees(task.member, contacts),
       memberIds: [...task.member],
-      subtasks: task.subtasks.map(s => ({ id: s.id, title: s.title, done: s.done })),
+      subtasks: task.subtasks.map((s) => ({ id: s.id, title: s.title, done: s.done })),
       status: (task.task_status || 'todo') as BoardStatus,
       sortOrder: task.sort_order ?? 0,
     };
@@ -240,7 +271,7 @@ export class Board {
   private resolveAssignees(ids: number[], contacts: ContactsModel[]): BoardAssignee[] {
     const result: BoardAssignee[] = [];
     for (let i = 0; i < ids.length; i++) {
-      const c = contacts.find(ct => ct.id === ids[i]);
+      const c = contacts.find((ct) => ct.id === ids[i]);
       if (!c) continue;
       result.push({ initials: c.getInitials(), fullName: c.full_name, color: c.avatar_color });
     }
@@ -256,29 +287,28 @@ export class Board {
 
   /** Finds the original TasksModel by its string ID. */
   private findTaskModel(id: string): TasksModel | undefined {
-    return this.dbService.tasksList().find(t => t.id === Number(id));
+    return this.dbService.tasksList().find((t) => t.id === Number(id));
   }
 
   /** Triggers a signal refresh and persists the task to Supabase. */
   private refreshAndPersist(task: TasksModel): void {
-    this.dbService.tasksList.update(list => [...list]);
+    this.dbService.tasksList.update((list) => [...list]);
     this.dbService.updateTask(task);
   }
 
   /** Re-maps the selected task so the dialog reflects updated data. */
   private refreshSelectedTask(id: string): void {
-    const updated = this.tasks().find(t => t.id === id);
+    const updated = this.tasks().find((t) => t.id === id);
     if (updated) this.selectedTask.set(updated);
   }
 
   /** Toggles a card's move menu; closes any other open menu (only one at a time). */
   onMenuToggle(taskId: string): void {
-    this.openMenuTaskId.update(current => current === taskId ? null : taskId);
+    this.openMenuTaskId.update((current) => (current === taskId ? null : taskId));
   }
- 
+
   /** Closes any currently open move menu. */
   onMenuClose(): void {
     this.openMenuTaskId.set(null);
   }
-
 }
