@@ -1,6 +1,7 @@
+import { CategoryModel } from "../../../shared/models/category-model";
+
 export type BoardStatus = 'todo' | 'in-progress' | 'await-feedback' | 'done';
 export type BoardPriority = 'urgent' | 'medium' | 'low';
-export type BoardCategory = 'User Story' | 'Technical Task';
 
 export interface BoardSubtask {
   id: number;
@@ -16,7 +17,7 @@ export interface BoardAssignee {
 
 export interface BoardTask {
   id: string;
-  category: BoardCategory;
+  category: CategoryModel | null;
   title: string;
   description: string;
   dueDate: string;

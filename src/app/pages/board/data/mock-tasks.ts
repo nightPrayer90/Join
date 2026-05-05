@@ -7,7 +7,7 @@ const MARCEL: BoardAssignee = { initials: 'MB', fullName: 'Marcel Bauer',    col
 export const MOCK_TASKS: BoardTask[] = [
   {
     id: 'kochwelt-recommender',
-    category: 'User Story',
+    category: null,
     title: 'Kochwelt Page & Recipe Recommender',
     description: 'Build start page with recipe recommendation.',
     dueDate: '10/05/2023',
@@ -23,7 +23,7 @@ export const MOCK_TASKS: BoardTask[] = [
   },
   {
     id: 'html-base-template',
-    category: 'Technical Task',
+    category: null,
     title: 'HTML Base Template Creation',
     description: 'Create reusable HTML base templates.',
     dueDate: '12/05/2023',
@@ -36,7 +36,7 @@ export const MOCK_TASKS: BoardTask[] = [
   },
   {
     id: 'daily-kochwelt-recipe',
-    category: 'User Story',
+    category: null,
     title: 'Daily Kochwelt Recipe',
     description: 'Implement daily recipe and portion calculator.',
     dueDate: '20/05/2023',
@@ -49,7 +49,7 @@ export const MOCK_TASKS: BoardTask[] = [
   },
   {
     id: 'css-architecture-planning',
-    category: 'Technical Task',
+    category: null,
     title: 'CSS Architecture Planning',
     description: 'Define CSS naming conventions and structure.',
     dueDate: '08/05/2023',
