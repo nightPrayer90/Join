@@ -39,6 +39,8 @@ export class Board {
   readonly draggingTaskId = signal<string | null>(null);
   readonly dropTarget = signal<{ column: BoardStatus; index: number } | null>(null);
 
+  readonly openMenuTaskId = signal<string | null>(null);
+
   readonly tasks = computed(() => {
     const models = this.dbService.tasksList();
     const contacts = this.dbService.contactsList();
@@ -268,4 +270,15 @@ export class Board {
     const updated = this.tasks().find(t => t.id === id);
     if (updated) this.selectedTask.set(updated);
   }
+
+  /** Toggles a card's move menu; closes any other open menu (only one at a time). */
+  onMenuToggle(taskId: string): void {
+    this.openMenuTaskId.update(current => current === taskId ? null : taskId);
+  }
+ 
+  /** Closes any currently open move menu. */
+  onMenuClose(): void {
+    this.openMenuTaskId.set(null);
+  }
+
 }
