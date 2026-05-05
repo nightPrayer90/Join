@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BoardAssignee, BoardCategory, BoardColumn, BoardPriority, BoardStatus, BoardSubtask, BoardTask } from './data/board-task.types';
 import { TaskCard } from './components/task-card/task-card';
 import { TaskDetailDialog } from './components/task-detail-dialog/task-detail-dialog';
+import { BoardAddTaskDialog } from './components/board-add-task-dialog/board-add-task-dialog';
 import { Supabase } from '../../service/supabase';
 import { TasksModel } from '../../shared/models/tasks-model';
 import { ContactsModel } from '../../shared/models/contacts-model';
@@ -18,7 +19,7 @@ import { ContactsModel } from '../../shared/models/contacts-model';
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [FormsModule, TaskCard, TaskDetailDialog],
+  imports: [FormsModule, TaskCard, TaskDetailDialog, BoardAddTaskDialog],
   templateUrl: './board.html',
   styleUrl: './board.scss',
 })
@@ -38,6 +39,8 @@ export class Board {
   readonly dragOverColumn = signal<BoardStatus | null>(null);
   readonly draggingTaskId = signal<string | null>(null);
   readonly dropTarget = signal<{ column: BoardStatus; index: number } | null>(null);
+  readonly showAddDialog = signal(false);
+  readonly addDialogStatus = signal<BoardStatus>('todo');
 
   readonly tasks = computed(() => {
     const models = this.dbService.tasksList();
@@ -149,9 +152,19 @@ export class Board {
     this.persistDrop(Number(taskId), status, insertIdx);
   }
 
-  /** Opens the shared add-task page from every board add-task entry point. */
-  openAddDialog(_status: BoardStatus): void {
-    this.router.navigate(['/add-task'], { queryParams: { from: 'board' } });
+  /** Opens the board add-task dialog on desktop and the shared add-task page on smaller screens. */
+  openAddDialog(status: BoardStatus): void {
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      this.router.navigate(['/add-task'], { queryParams: { from: 'board' } });
+      return;
+    }
+    this.addDialogStatus.set(status);
+    this.showAddDialog.set(true);
+  }
+
+  /** Closes the add-task dialog. */
+  closeAddDialog(): void {
+    this.showAddDialog.set(false);
   }
 
   /** Toggles a subtask's done state and persists it to Supabase. */

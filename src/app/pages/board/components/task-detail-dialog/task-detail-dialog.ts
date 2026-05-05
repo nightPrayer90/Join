@@ -2,6 +2,7 @@ import { Component, EventEmitter, HostListener, inject, Input, Output, signal } 
 import { FormsModule } from '@angular/forms';
 import { BoardPriority, BoardSubtask, BoardTask } from '../../data/board-task.types';
 import { Supabase } from '../../../../service/supabase';
+import { TasksModel } from '../../../../shared/models/tasks-model';
 
 interface TaskUpdatePayload {
   id: string;
@@ -44,11 +45,18 @@ export class TaskDetailDialog {
   editAssignedOpen = false;
   editSubtasks: BoardSubtask[] = [];
   editSubtaskInput = '';
+  editSaveAttempted = false;
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.isEditing()) return this.cancelEdit();
     this.close.emit();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.edit-assigned-wrapper')) this.editAssignedOpen = false;
   }
 
   onOverlayClick(): void {
@@ -57,6 +65,8 @@ export class TaskDetailDialog {
   }
 
   onCardClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.edit-assigned-wrapper')) this.editAssignedOpen = false;
     event.stopPropagation();
   }
 
@@ -77,16 +87,19 @@ export class TaskDetailDialog {
     this.editSubtasks = this.task.subtasks.map(s => ({ ...s }));
     this.editSubtaskInput = '';
     this.editAssignedOpen = false;
+    this.editSaveAttempted = false;
     this.isEditing.set(true);
   }
 
   cancelEdit(): void {
     this.editAssignedOpen = false;
+    this.editSaveAttempted = false;
     this.isEditing.set(false);
   }
 
   saveEdit(): void {
-    if (!this.editTitle.trim()) return;
+    this.editSaveAttempted = true;
+    if (!this.editTitle.trim() || this.isEditDueDateInvalid()) return;
     this.taskUpdated.emit({
       id: this.task.id,
       title: this.editTitle.trim(),
@@ -96,7 +109,32 @@ export class TaskDetailDialog {
       memberIds: [...this.editMemberIds()],
       subtasks: [...this.editSubtasks],
     });
+    this.editSaveAttempted = false;
     this.isEditing.set(false);
+  }
+
+  isEditDueDateInvalid(): boolean {
+    return TasksModel.isDueDateInvalid(this.editDueDate);
+  }
+
+  showEditDueDateError(): boolean {
+    return this.editSaveAttempted && this.isEditDueDateInvalid();
+  }
+
+  editDueDateErrorMessage(): string {
+    if (!this.editDueDate.trim()) return 'This field is required';
+    return 'Due date cannot be in the past';
+  }
+
+  onEditDueDateInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    const parts: string[] = [];
+    if (digits.length > 0) parts.push(digits.slice(0, 2));
+    if (digits.length > 2) parts.push(digits.slice(2, 4));
+    if (digits.length > 4) parts.push(digits.slice(4, 8));
+    this.editDueDate = parts.join('/');
+    input.value = this.editDueDate;
   }
 
   setEditPriority(p: BoardPriority): void {

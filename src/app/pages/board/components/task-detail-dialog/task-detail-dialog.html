@@ -30,7 +30,12 @@
       <div class="meta-row">
         <dt>Due date:</dt>
         @if (isEditing()) {
-          <dd><input class="edit-input edit-date-input" type="text" [(ngModel)]="editDueDate" placeholder="DD/MM/YYYY"></dd>
+          <dd class="edit-date-field">
+            <input class="edit-input edit-date-input" type="text" [(ngModel)]="editDueDate" placeholder="DD/MM/YYYY" [class.invalid]="showEditDueDateError()" (input)="onEditDueDateInput($event)">
+            @if (showEditDueDateError()) {
+              <p class="edit-field-error">{{ editDueDateErrorMessage() }}</p>
+            }
+          </dd>
         } @else {
           <dd>{{ task.dueDate }}</dd>
         }
@@ -107,7 +112,22 @@
                     <span class="edit-assigned-avatar" [style.background-color]="contact.avatar_color">{{ contactInitials(contact.full_name) }}</span>
                     <span class="edit-assigned-name">{{ contact.full_name }}</span>
                   </span>
-                  <input class="edit-assigned-checkbox" type="checkbox" [checked]="isEditMemberSelected(contact.id)" (change)="toggleEditMember(contact.id)">
+                  <span class="edit-assigned-check">
+                    <input class="edit-assigned-checkbox" type="checkbox" [checked]="isEditMemberSelected(contact.id)" (change)="toggleEditMember(contact.id)">
+                    <span class="check-icon unchecked" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="1" width="16" height="16" rx="3" stroke="#2A3647" stroke-width="2" />
+                      </svg>
+                    </span>
+                    <span class="check-icon checked" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 8V14C17 15.6569 15.6569 17 14 17H4C2.34315 17 1 15.6569 1 14V4C1 2.34315 2.34315 1 4 1H12" stroke="#2A3647" stroke-width="2" stroke-linecap="round" />
+                      </svg>
+                      <svg class="check-mark" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 8.5L5 12.5L13 1" stroke="#2A3647" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                  </span>
                 </label>
               }
               <button type="button" class="edit-assigned-ok" (click)="editAssignedOpen = false">Ok ✓</button>
@@ -124,7 +144,7 @@
           </div>
         }
       } @else {
-        <ul class="assignee-list">
+        <ul class="assignee-list" [class.has-assignee-overflow]="task.assignees.length > 2">
           @for (a of task.assignees; track a.fullName) {
             <li class="assignee-row">
               <span class="assignee-avatar" [style.background-color]="a.color">{{ a.initials }}</span>
