@@ -64,14 +64,14 @@ export class TaskCard {
     return (this.doneSubtasks / this.totalSubtasks) * 100;
   }
 
-  /** Show max 4 avatars */
+  /** Show max 3 avatars */
   get visibleAssignees() {
-    return this.task.assignees.slice(0, 4);
+    return this.task.assignees.slice(0, 3);
   }
 
   /** Remaining count shown as "+N" overflow badge */
   get hiddenAssigneesCount(): number {
-    return Math.max(0, this.task.assignees.length - 4);
+    return Math.max(0, this.task.assignees.length - 3);
   }
 
   //#region HOST INTERACTIONS ---------------------------------------------------------------------
