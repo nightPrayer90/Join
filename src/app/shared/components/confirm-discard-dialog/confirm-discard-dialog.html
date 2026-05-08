@@ -1,0 +1,32 @@
+<div class="confirm-discard-overlay" (click)="onOverlayClick($event)" role="presentation">
+  <div
+    class="confirm-discard-panel"
+    role="alertdialog"
+    aria-modal="true"
+    [attr.aria-label]="title"
+    (click)="onPanelClick($event)"
+  >
+    <header class="confirm-discard-header">
+      <h2 class="confirm-discard-title">{{ title }}</h2>
+    </header>
+
+    <p class="confirm-discard-message">{{ message }}</p>
+
+    <footer class="confirm-discard-footer">
+      <button
+        type="button"
+        class="confirm-discard-btn confirm-discard-btn--secondary"
+        (click)="onCancel($event)"
+      >
+        <span>{{ cancelLabel }}</span>
+      </button>
+      <button
+        type="button"
+        class="confirm-discard-btn confirm-discard-btn--primary"
+        (click)="onConfirm($event)"
+      >
+        <span>{{ confirmLabel }}</span>
+      </button>
+    </footer>
+  </div>
+</div>
