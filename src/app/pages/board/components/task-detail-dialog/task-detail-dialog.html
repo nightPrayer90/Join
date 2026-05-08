@@ -9,7 +9,7 @@
       @if (task.category) {
       <span class="category-badge" [style.background-color]="task.category.color">{{ task.category.name }}</span>
       }
-      <button type="button" class="close-btn" aria-label="Close dialog" (click)="close.emit()">
+      <button type="button" class="close-btn" aria-label="Close dialog" (click)="attemptClose()">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true">
           <path d="M1 1L13 13M13 1L1 13" stroke="#2A3647" stroke-width="2" stroke-linecap="round" />
@@ -203,7 +203,7 @@
 
     <footer class="detail-footer">
       @if (isEditing()) {
-        <button type="button" class="footer-btn" (click)="cancelEdit()">
+        <button type="button" class="footer-btn" (click)="attemptClose()">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M1 1L13 13M13 1L1 13" stroke="#2A3647" stroke-width="2" stroke-linecap="round"/>
           </svg>
@@ -233,4 +233,10 @@
       }
     </footer>
   </article>
+
+  @if (showConfirmDiscard()) {
+    <app-confirm-discard-dialog
+      (confirm)="onConfirmDiscard()"
+      (cancel)="onCancelDiscard()" />
+  }
 </div>

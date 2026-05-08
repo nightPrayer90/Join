@@ -7,13 +7,14 @@ import { Subtask } from '../../../../shared/interface/tasks-interface';
 import { TasksModel } from '../../../../shared/models/tasks-model';
 import { ContactsModel } from '../../../../shared/models/contacts-model';
 import { CategoryModel } from '../../../../shared/models/category-model';
+import { ConfirmDiscardDialog } from '../../../../shared/components/confirm-discard-dialog/confirm-discard-dialog';
 
 type PriorityKey = 1 | 2 | 3;
 
 @Component({
   selector: 'app-board-add-task-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmDiscardDialog],
   templateUrl: './board-add-task-dialog.html',
   styleUrl: './board-add-task-dialog.scss',
 })
@@ -41,6 +42,7 @@ export class BoardAddTaskDialog implements OnInit {
 
   isSaving = signal(false);
   selectedMemberIds = signal<number[]>([]);
+  showConfirmDiscard = signal(false);
 
   assignedLabel = computed(() => {
     const ids = this.selectedMemberIds();
@@ -70,7 +72,8 @@ export class BoardAddTaskDialog implements OnInit {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.closed.emit();
+    if (this.showConfirmDiscard()) return this.onCancelDiscard();
+    this.attemptClose();
   }
 
   @HostListener('document:click', ['$event'])
@@ -82,7 +85,43 @@ export class BoardAddTaskDialog implements OnInit {
   }
 
   onOverlayClick(): void {
+    this.attemptClose();
+  }
+
+  attemptClose(): void {
+    if (this.hasUnsavedChanges()) {
+      this.showConfirmDiscard.set(true);
+      return;
+    }
     this.closed.emit();
+  }
+
+  onConfirmDiscard(): void {
+    this.showConfirmDiscard.set(false);
+    this.closed.emit();
+  }
+
+  onCancelDiscard(): void {
+    this.showConfirmDiscard.set(false);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.hasTextInput() || this.hasFieldChange() || this.hasCollectionChange();
+  }
+
+  private hasTextInput(): boolean {
+    return !!this.title.trim()
+      || !!this.description.trim()
+      || !!this.dueDateText.trim()
+      || !!this.subtaskInput.trim();
+  }
+
+  private hasFieldChange(): boolean {
+    return this.priority !== 2 || this.categoryId !== null;
+  }
+
+  private hasCollectionChange(): boolean {
+    return this.selectedMemberIds().length > 0 || this.subtasks.length > 0;
   }
 
   onPanelClick(event: MouseEvent): void {

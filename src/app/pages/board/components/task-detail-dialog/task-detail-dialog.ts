@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { BoardPriority, BoardSubtask, BoardTask } from '../../data/board-task.types';
 import { Supabase } from '../../../../service/supabase';
 import { TasksModel } from '../../../../shared/models/tasks-model';
+import { ConfirmDiscardDialog } from '../../../../shared/components/confirm-discard-dialog/confirm-discard-dialog';
 
 interface TaskUpdatePayload {
   id: string;
@@ -17,7 +18,7 @@ interface TaskUpdatePayload {
 @Component({
   selector: 'app-task-detail-dialog',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ConfirmDiscardDialog],
   templateUrl: './task-detail-dialog.html',
   styleUrl: './task-detail-dialog.scss',
 })
@@ -46,11 +47,12 @@ export class TaskDetailDialog {
   editSubtasks: BoardSubtask[] = [];
   editSubtaskInput = '';
   editSaveAttempted = false;
+  showConfirmDiscard = signal(false);
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    if (this.isEditing()) return this.cancelEdit();
-    this.close.emit();
+    if (this.showConfirmDiscard()) return this.onCancelDiscard();
+    this.attemptClose();
   }
 
   @HostListener('document:click', ['$event'])
@@ -60,8 +62,56 @@ export class TaskDetailDialog {
   }
 
   onOverlayClick(): void {
-    if (this.isEditing()) return this.cancelEdit();
+    this.attemptClose();
+  }
+
+  attemptClose(): void {
+    if (!this.isEditing()) return this.close.emit();
+    if (this.hasEditChanges()) {
+      this.showConfirmDiscard.set(true);
+      return;
+    }
+    this.cancelEdit();
+  }
+
+  onConfirmDiscard(): void {
+    this.showConfirmDiscard.set(false);
+    this.cancelEdit();
     this.close.emit();
+  }
+
+  onCancelDiscard(): void {
+    this.showConfirmDiscard.set(false);
+  }
+
+  hasEditChanges(): boolean {
+    return this.editScalarsChanged()
+      || this.editMembersChanged()
+      || this.editSubtasksChanged()
+      || !!this.editSubtaskInput.trim();
+  }
+
+  private editScalarsChanged(): boolean {
+    return this.editTitle.trim() !== this.task.title
+      || this.editDescription.trim() !== this.task.description
+      || this.editPriority !== this.task.priority
+      || this.editDueDate !== this.task.dueDate;
+  }
+
+  private editMembersChanged(): boolean {
+    const cur = [...this.editMemberIds()].sort((a, b) => a - b);
+    const orig = [...this.task.memberIds].sort((a, b) => a - b);
+    if (cur.length !== orig.length) return true;
+    return cur.some((id, i) => id !== orig[i]);
+  }
+
+  private editSubtasksChanged(): boolean {
+    const cur = this.editSubtasks;
+    const orig = this.task.subtasks;
+    if (cur.length !== orig.length) return true;
+    return cur.some((s, i) =>
+      s.id !== orig[i].id || s.title !== orig[i].title || s.done !== orig[i].done,
+    );
   }
 
   onCardClick(event: MouseEvent): void {

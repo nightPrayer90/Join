@@ -3,7 +3,7 @@
 
     <header class="panel-header">
       <h2 class="panel-title">Add Task</h2>
-      <button type="button" class="close-btn" aria-label="Close" (click)="closed.emit()">
+      <button type="button" class="close-btn" aria-label="Close" (click)="attemptClose()">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true">
           <path d="M1 1L13 13M13 1L1 13" stroke="#2A3647" stroke-width="2" stroke-linecap="round" />
@@ -201,7 +201,7 @@
       <footer class="panel-footer">
         <p class="required-note"><span class="required">*</span>This field is required</p>
         <div class="footer-actions">
-          <button type="button" class="btn-cancel" (click)="closed.emit()">
+          <button type="button" class="btn-cancel" (click)="attemptClose()">
             <span>Cancel</span>
             <span aria-hidden="true">x</span>
           </button>
@@ -213,4 +213,10 @@
       </footer>
     </form>
   </div>
+
+  @if (showConfirmDiscard()) {
+    <app-confirm-discard-dialog
+      (confirm)="onConfirmDiscard()"
+      (cancel)="onCancelDiscard()" />
+  }
 </div>
