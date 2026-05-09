@@ -215,21 +215,44 @@ export class Board {
   }
 
   /** Moves a task to a target column at a specific index, reorders, and persists all changes. */
-  private persistDrop(id: number, status: BoardStatus, insertIdx: number): void {
-    const allTasks = this.dbService.tasksList();
-    const moved = allTasks.find((t) => t.id === id);
-    if (!moved) return;
-    moved.task_status = status;
-    const columnTasks = allTasks
-      .filter((t) => t.task_status === status && t.id !== id)
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-    columnTasks.splice(insertIdx, 0, moved);
-    for (let i = 0; i < columnTasks.length; i++) {
-      columnTasks[i].sort_order = i;
-      this.dbService.updateTask(columnTasks[i]);
-    }
-    this.dbService.tasksList.update((list) => [...list]);
+  private persistDrop(id: number, boardColumn: BoardStatus, insertIndex: number): void {
+  const allTasks = this.dbService.tasksList();
+  const moved = allTasks.find((t) => t.id === id);
+  if (!moved) return;
+
+  const index = this.findInsertIndex(moved, boardColumn, insertIndex, allTasks);
+  moved.task_status = boardColumn;
+
+  const column = this.setNewColumnOrder(moved, boardColumn, index, allTasks);
+
+  for (let i = 0; i < column.length; i++) {
+    column[i].sort_order = i;
+    this.dbService.updateTask(column[i]);
   }
+  this.dbService.tasksList.update((list) => [...list]);
+}
+
+/** Adjusts the visual insert index for same-column moves where the dragged card shifts positions. */
+private findInsertIndex(moved: TasksModel, boardColumn: BoardStatus, insertIndex: number, tasks: TasksModel[]): number {
+  if (moved.task_status !== boardColumn) return insertIndex;
+
+  const oldIndex = tasks
+  .filter((task) => task.task_status === boardColumn)
+  .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0))
+  .findIndex((task) => task.id === moved.id);
+
+  return oldIndex !== -1 && insertIndex > oldIndex ? insertIndex - 1 : insertIndex;
+}
+
+/** Builds the new card order for a column by inserting the moved task at the target index. */
+private setNewColumnOrder(moved: TasksModel, boardColumn: BoardStatus, insertIndex: number, tasks: TasksModel[]): TasksModel[] {
+  const column = tasks
+    .filter((task) => task.task_status === boardColumn && task.id !== moved.id)
+    .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0));
+
+  column.splice(insertIndex, 0, moved);
+  return column;
+}
 
   /**
    * Converts a database TasksModel into a UI-ready BoardTask.
@@ -260,6 +283,13 @@ export class Board {
     return 'medium';
   }
 
+    /** Reverse-maps a BoardPriority label to its numeric DB value. */
+  private reversePriority(p: BoardPriority): number {
+    if (p === 'urgent') return 1;
+    if (p === 'low') return 3;
+    return 2;
+  }
+
   /**
    * Resolves an array of contact IDs into BoardAssignee objects with initials, name and color.
    * Silently skips IDs that no longer exist in the contacts list.
@@ -272,13 +302,6 @@ export class Board {
       result.push({ initials: c.getInitials(), fullName: c.full_name, color: c.avatar_color });
     }
     return result;
-  }
-
-  /** Reverse-maps a BoardPriority label to its numeric DB value. */
-  private reversePriority(p: BoardPriority): number {
-    if (p === 'urgent') return 1;
-    if (p === 'low') return 3;
-    return 2;
   }
 
   /** Finds the original TasksModel by its string ID. */
