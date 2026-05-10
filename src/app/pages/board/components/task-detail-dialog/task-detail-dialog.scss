@@ -131,6 +131,7 @@
     font-size: 16px;
     font-weight: 400;
     color: #2a3647;
+    min-width: 0;
   }
 }
 
@@ -335,14 +336,43 @@
 }
 
 .edit-date-input {
-  width: 160px;
+  width: 100%;
   padding: 6px 10px;
+  padding-right: 44px;
 }
 
 .edit-date-field {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 100%;
+}
+
+.edit-date-picker {
+  position: relative;
+  width: 180px;
+}
+
+.native-date-picker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.field-icon-btn {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  margin: auto 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
 }
 
 .edit-field-error {
@@ -354,15 +384,18 @@
 
 .edit-priority-row {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
+  width: 100%;
 }
 
 .edit-priority-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
+  min-width: 0;
+  padding: 6px 10px;
   border: 1px solid #d1d1d1;
   border-radius: 10px;
   background: #ffffff;
@@ -370,6 +403,7 @@
   font-size: 16px;
   font-family: inherit;
   color: #2a3647;
+  white-space: nowrap;
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
   &:hover {
@@ -490,8 +524,8 @@
 }
 
 .edit-assigned-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   color: #ffffff;
   font-size: 16px;
@@ -575,8 +609,8 @@
 
 .edit-assigned-selected-avatar {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   color: #ffffff;
   font-size: 16px;
@@ -688,6 +722,27 @@
   }
 }
 
+@media (max-width: 768px) {
+  .edit-priority-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr) minmax(0, 0.86fr);
+    gap: 6px;
+    width: 100%;
+  }
+
+  .edit-priority-btn {
+    justify-content: center;
+    min-width: 0;
+    padding: 6px 4px;
+    font-size: 16px;
+    white-space: nowrap;
+
+    svg {
+      width: 16px;
+    }
+  }
+}
+
 @media (max-width: 640px) {
   .task-detail-overlay {
     padding: 20px 20px 92px;
@@ -696,6 +751,7 @@
 
   .task-detail-card {
     width: 100%;
+    height: calc(100dvh - 112px);
     max-height: calc(100vh - 112px);
     padding: 40px 32px;
     border-radius: 30px;
@@ -724,9 +780,8 @@
     width: 100%;
   }
 
-  .edit-priority-btn {
-    padding: 6px 10px;
-    font-size: 16px;
+  .edit-date-picker {
+    width: 100%;
   }
 
   .edit-assigned-dropdown {
@@ -751,7 +806,8 @@
     font-weight: 700;
   }
 
-  .assignee-list {
+  .assignee-list,
+  .subtask-list {
     max-height: 124px;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -766,6 +822,10 @@
   .assignee-list.has-assignee-overflow {
     mask: linear-gradient(180deg, #000 calc(100% - 32px), transparent);
   }
+
+  .subtask-list.has-subtask-overflow {
+    mask: linear-gradient(180deg, #000 calc(100% - 32px), transparent);
+  }
 }
 
 @media (max-width: 400px) {
@@ -774,6 +834,7 @@
   }
 
   .task-detail-card {
+    height: calc(100dvh - 96px);
     max-height: calc(100vh - 96px);
     padding: 32px 24px;
     border-radius: 30px;

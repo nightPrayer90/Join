@@ -21,6 +21,7 @@ type PriorityKey = 1 | 2 | 3;
 export class BoardAddTaskDialog implements OnInit {
   @Input() presetStatus: BoardStatus = 'todo';
   @Output() closed = new EventEmitter<void>();
+  @Output() taskCreated = new EventEmitter<void>();
 
   dbService = inject(Supabase);
   readonly categories = CategoryModel.LIST;
@@ -264,6 +265,7 @@ export class BoardAddTaskDialog implements OnInit {
       this.saveError = 'Task could not be saved.';
       return;
     }
+    this.taskCreated.emit();
     this.closed.emit();
   }
 

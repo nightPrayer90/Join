@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, inject, Input, Output, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, inject, Input, Output, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BoardPriority, BoardSubtask, BoardTask } from '../../data/board-task.types';
 import { Supabase } from '../../../../service/supabase';
@@ -28,6 +28,7 @@ export class TaskDetailDialog {
   @Output() subtaskToggle = new EventEmitter<{ taskId: string; subtaskId: number }>();
   @Output() deleteTask = new EventEmitter<string>();
   @Output() taskUpdated = new EventEmitter<TaskUpdatePayload>();
+  @ViewChild('detailCard') detailCard?: ElementRef<HTMLElement>;
 
   dbService = inject(Supabase);
 
@@ -42,6 +43,8 @@ export class TaskDetailDialog {
   editDescription = '';
   editPriority: BoardPriority = 'medium';
   editDueDate = '';
+  editDueDateTouched = false;
+  minDateISO = TasksModel.todayISO();
   editMemberIds = signal<number[]>([]);
   editAssignedOpen = false;
   editSubtasks: BoardSubtask[] = [];
@@ -137,12 +140,15 @@ export class TaskDetailDialog {
     this.editSubtasks = this.task.subtasks.map(s => ({ ...s }));
     this.editSubtaskInput = '';
     this.editAssignedOpen = false;
+    this.editDueDateTouched = false;
     this.editSaveAttempted = false;
     this.isEditing.set(true);
+    requestAnimationFrame(() => this.detailCard?.nativeElement.scrollTo({ top: 0 }));
   }
 
   cancelEdit(): void {
     this.editAssignedOpen = false;
+    this.editDueDateTouched = false;
     this.editSaveAttempted = false;
     this.isEditing.set(false);
   }
@@ -168,12 +174,12 @@ export class TaskDetailDialog {
   }
 
   showEditDueDateError(): boolean {
-    return this.editSaveAttempted && this.isEditDueDateInvalid();
+    return (this.editSaveAttempted || this.editDueDateTouched) && this.isEditDueDateInvalid();
   }
 
   editDueDateErrorMessage(): string {
     if (!this.editDueDate.trim()) return 'This field is required';
-    return 'Due date cannot be in the past';
+    return 'Due date must be in the future';
   }
 
   onEditDueDateInput(event: Event): void {
@@ -185,6 +191,26 @@ export class TaskDetailDialog {
     if (digits.length > 4) parts.push(digits.slice(4, 8));
     this.editDueDate = parts.join('/');
     input.value = this.editDueDate;
+  }
+
+  onEditDueDateBlur(): void {
+    this.editDueDateTouched = true;
+  }
+
+  openEditDatePicker(dateInput: HTMLInputElement): void {
+    if (typeof dateInput.showPicker === 'function') {
+      dateInput.showPicker();
+      return;
+    }
+    dateInput.click();
+  }
+
+  onEditDatePickerChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const match = input.value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return;
+    this.editDueDate = `${match[3]}/${match[2]}/${match[1]}`;
+    this.editDueDateTouched = true;
   }
 
   setEditPriority(p: BoardPriority): void {

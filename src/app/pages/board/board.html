@@ -96,6 +96,12 @@
 @if (showAddDialog()) {
   <app-board-add-task-dialog
     [presetStatus]="addDialogStatus()"
+    (taskCreated)="onTaskCreated()"
     (closed)="closeAddDialog()"
   />
 }
+
+<div class="board-toast" [class.show]="showToast()" aria-hidden="true">
+  <span>{{ toastMessage() }}</span>
+  <span class="toast-icon" aria-hidden="true">{{ toastIcon() }}</span>
+</div>

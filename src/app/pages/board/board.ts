@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -30,9 +30,10 @@ import { ContactsModel } from '../../shared/models/contacts-model';
   templateUrl: './board.html',
   styleUrl: './board.scss',
 })
-export class Board {
+export class Board implements OnDestroy {
   private dbService = inject(Supabase);
   private router = inject(Router);
+  private toastTimeoutId: number | null = null;
 
   readonly columns: BoardColumn[] = [
     { key: 'todo', title: 'To do' },
@@ -49,6 +50,9 @@ export class Board {
   readonly showAddDialog = signal(false);
   readonly addDialogStatus = signal<BoardStatus>('todo');
   readonly openMenuTaskId = signal<string | null>(null);
+  readonly showToast = signal(false);
+  readonly toastMessage = signal('');
+  readonly toastIcon = signal('✓');
 
   readonly tasks = computed(() => {
     const models = this.dbService.tasksList();
@@ -63,6 +67,10 @@ export class Board {
       (t) => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q),
     );
   });
+
+  ngOnDestroy(): void {
+    if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
+  }
 
   /**
    * Returns all filtered tasks that belong to the given column status.
@@ -170,6 +178,12 @@ export class Board {
   /** Closes the add-task dialog. */
   closeAddDialog(): void {
     this.showAddDialog.set(false);}
+
+  /** Shows the board feedback after a task was created in the desktop add-task dialog. */
+  onTaskCreated(): void {
+    this.openToast('Task added to board', '▥');
+  }
+
   /** Opens the shared add-task page from every board add-task entry point. */
   openAddPage(_status: BoardStatus): void {
     this.router.navigate(['/add-task'], { queryParams: { from: 'board' } });
@@ -212,6 +226,7 @@ export class Board {
     task.subtasks = payload.subtasks.map((s) => ({ id: s.id, title: s.title, done: s.done }));
     this.refreshAndPersist(task);
     this.refreshSelectedTask(payload.id);
+    this.openToast('Task updated');
   }
 
   /** Moves a task to a target column at a specific index, reorders, and persists all changes. */
@@ -230,6 +245,18 @@ export class Board {
     this.dbService.updateTask(column[i]);
   }
   this.dbService.tasksList.update((list) => [...list]);
+  this.openToast('Task moved');
+}
+
+private openToast(message: string, icon = '✓'): void {
+  if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
+  this.toastMessage.set(message);
+  this.toastIcon.set(icon);
+  this.showToast.set(true);
+  this.toastTimeoutId = window.setTimeout(() => {
+    this.showToast.set(false);
+    this.toastTimeoutId = null;
+  }, 2500);
 }
 
 /** Adjusts the visual insert index for same-column moves where the dragged card shifts positions. */

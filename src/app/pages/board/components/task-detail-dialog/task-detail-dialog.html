@@ -1,5 +1,5 @@
 <div class="task-detail-overlay" (click)="onOverlayClick()" role="presentation">
-  <article class="task-detail-card"
+  <article #detailCard class="task-detail-card"
            role="dialog"
            aria-modal="true"
            [attr.aria-label]="task.title"
@@ -30,7 +30,20 @@
         <dt>Due date:</dt>
         @if (isEditing()) {
           <dd class="edit-date-field">
-            <input class="edit-input edit-date-input" type="text" [(ngModel)]="editDueDate" placeholder="DD/MM/YYYY" [class.invalid]="showEditDueDateError()" (input)="onEditDueDateInput($event)">
+            <div class="edit-date-picker">
+              <input class="edit-input edit-date-input" type="text" [(ngModel)]="editDueDate" placeholder="DD/MM/YYYY" [class.invalid]="showEditDueDateError()" (input)="onEditDueDateInput($event)" (blur)="onEditDueDateBlur()">
+              <input #editNativeDatePicker type="date" class="native-date-picker" [min]="minDateISO" (change)="onEditDatePickerChange($event)">
+              <button type="button" class="field-icon-btn" aria-label="Choose date" (click)="openEditDatePicker(editNativeDatePicker)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true">
+                  <path
+                    d="M7 2C7.55228 2 8 2.44772 8 3V4H16V3C16 2.44772 16.4477 2 17 2C17.5523 2 18 2.44772 18 3V4H19C20.6569 4 22 5.34315 22 7V19C22 20.6569 20.6569 22 19 22H5C3.34315 22 2 20.6569 2 19V7C2 5.34315 3.34315 4 5 4H6V3C6 2.44772 6.44772 2 7 2Z"
+                    fill="#2A3647" />
+                  <path d="M4 10H20V19C20 19.5523 19.5523 20 19 20H5C4.44772 20 4 19.5523 4 19V10Z" fill="#F6F7F8" />
+                  <rect x="7" y="13" width="3" height="3" rx="1" fill="#2A3647" />
+                </svg>
+              </button>
+            </div>
             @if (showEditDueDateError()) {
               <p class="edit-field-error">{{ editDueDateErrorMessage() }}</p>
             }
@@ -181,7 +194,7 @@
         }
       } @else {
         @if (task.subtasks.length > 0) {
-          <ul class="subtask-list">
+          <ul class="subtask-list" [class.has-subtask-overflow]="task.subtasks.length > 3">
             @for (s of task.subtasks; track s.id) {
               <li class="subtask-row clickable" (click)="toggleSubtask(s.id)">
                 <span class="checkbox" [class.checked]="s.done" aria-hidden="true">
