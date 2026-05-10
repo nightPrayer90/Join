@@ -204,6 +204,7 @@ export class Board implements OnDestroy {
   onDeleteTask(taskId: string): void {
     this.selectedTask.set(null);
     this.dbService.deleteTask(Number(taskId));
+    this.openToast('Task deleted');
   }
 
   /** Applies inline-edit changes back to the TasksModel and persists. */
