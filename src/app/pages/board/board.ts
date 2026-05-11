@@ -236,6 +236,7 @@ export class Board implements OnDestroy {
   const moved = allTasks.find((t) => t.id === id);
   if (!moved) return;
 
+  const previousStatus = moved.task_status;
   const index = this.findInsertIndex(moved, boardColumn, insertIndex, allTasks);
   moved.task_status = boardColumn;
 
@@ -246,7 +247,7 @@ export class Board implements OnDestroy {
     this.dbService.updateTask(column[i]);
   }
   this.dbService.tasksList.update((list) => [...list]);
-  this.openToast('Task moved');
+  if (previousStatus !== boardColumn) this.openToast('Task moved');
 }
 
 private openToast(message: string, icon = '✓'): void {
