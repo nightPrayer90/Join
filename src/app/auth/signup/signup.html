@@ -1,1 +1,128 @@
-<p>signup works!</p>
+<section class="signup-page">
+  <div class="signup-shell">
+    <header class="top-bar">
+      <a class="logo-link" routerLink="/login" aria-label="Join login">
+        <img src="assets/logos/join-logo-dark.png" alt="Join" class="logo">
+      </a>
+    </header>
+
+    <main class="signup-content">
+      <article class="signup-card">
+        <button type="button" class="back-btn" aria-label="Back to login" (click)="goBack()">
+          <svg width="21" height="20" viewBox="0 0 21 20" fill="none" aria-hidden="true">
+            <path d="M4.27563 8.48509H19.1716C19.908 8.48509 20.505 9.08204 20.505 9.81842C20.505 10.5548 19.908 11.1518 19.1716 11.1518H4.27563L10.485 17.3611C11.0056 17.8817 11.0056 18.7258 10.485 19.2464C9.96434 19.767 9.12025 19.767 8.59963 19.2464L0.585843 11.2326C-0.195206 10.4516 -0.195204 9.18526 0.585844 8.40421L8.59963 0.39042C9.12025 -0.130201 9.96434 -0.1302 10.485 0.39042C11.0056 0.911041 11.0056 1.75513 10.485 2.27575L4.27563 8.48509Z" fill="#29ABE2"/>
+          </svg>
+        </button>
+
+        <h1>Sign up</h1>
+        <div class="headline-separator"></div>
+
+        <form class="signup-form" novalidate (ngSubmit)="onSubmit()">
+          <div class="input-wrapper" [class.has-error]="nameError()">
+            <input id="name" name="name" type="text" placeholder="Name" autocomplete="name"
+              [(ngModel)]="fullName" (input)="onInput()" [attr.aria-invalid]="!!nameError()">
+            <img src="assets/icons/person.png" alt="" aria-hidden="true" class="input-icon">
+          </div>
+          @if (nameError()) {
+            <p class="field-error">{{ nameError() }}</p>
+          }
+
+          <div class="input-wrapper" [class.has-error]="emailError()">
+            <input id="email" name="email" type="email" placeholder="Email" autocomplete="email"
+              [(ngModel)]="email" (input)="onInput()" [attr.aria-invalid]="!!emailError()">
+            <img src="assets/icons/mail.png" alt="" aria-hidden="true" class="input-icon">
+          </div>
+          @if (emailError()) {
+            <p class="field-error">{{ emailError() }}</p>
+          }
+
+          <div class="input-wrapper" [class.has-error]="passwordError()">
+            <input id="password" name="password" [type]="passwordVisible ? 'text' : 'password'" placeholder="Password"
+              autocomplete="new-password" [(ngModel)]="password" (input)="onInput()" (focus)="onPasswordFocus()"
+              (blur)="onPasswordBlur()" [attr.aria-invalid]="!!passwordError()">
+            @if (passwordFocused) {
+              <button
+                type="button"
+                class="password-toggle"
+                [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'"
+                (mousedown)="$event.preventDefault()"
+                (click)="togglePasswordVisibility()">
+                <img [src]="passwordVisible ? 'assets/icons/eye.svg' : 'assets/icons/eye-off.svg'" alt="" aria-hidden="true">
+              </button>
+            } @else {
+              <img src="assets/icons/lock.png" alt="" aria-hidden="true" class="input-icon">
+            }
+          </div>
+          @if (passwordError()) {
+            <p class="field-error">{{ passwordError() }}</p>
+          }
+
+          <div class="input-wrapper" [class.has-error]="confirmPasswordError()">
+            <input id="confirm-password" name="confirmPassword" [type]="confirmPasswordVisible ? 'text' : 'password'"
+              placeholder="Confirm Password" autocomplete="new-password" [(ngModel)]="confirmPassword" (input)="onInput()"
+              (focus)="onConfirmPasswordFocus()" (blur)="onConfirmPasswordBlur()"
+              [attr.aria-invalid]="!!confirmPasswordError()">
+            @if (confirmPasswordFocused) {
+              <button
+                type="button"
+                class="password-toggle"
+                [attr.aria-label]="confirmPasswordVisible ? 'Hide password' : 'Show password'"
+                (mousedown)="$event.preventDefault()"
+                (click)="toggleConfirmPasswordVisibility()">
+                <img [src]="confirmPasswordVisible ? 'assets/icons/eye.svg' : 'assets/icons/eye-off.svg'" alt="" aria-hidden="true">
+              </button>
+            } @else {
+              <img src="assets/icons/lock.png" alt="" aria-hidden="true" class="input-icon">
+            }
+          </div>
+          @if (confirmPasswordError()) {
+            <p class="field-error">{{ confirmPasswordError() }}</p>
+          }
+
+          <label class="privacy-row">
+            <input type="checkbox" name="acceptedPrivacy" [(ngModel)]="acceptedPrivacy" (change)="onInput()">
+            <span class="privacy-check" aria-hidden="true">
+              <span class="check-icon unchecked">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <rect x="1" y="1" width="16" height="16" rx="3" stroke="#2A3647" stroke-width="2" />
+                </svg>
+              </span>
+              <span class="check-icon checked">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path
+                    d="M17 8V14C17 15.6569 15.6569 17 14 17H4C2.34315 17 1 15.6569 1 14V4C1 2.34315 2.34315 1 4 1H12"
+                    stroke="#2A3647" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <svg class="check-mark" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M1 8.5L5 12.5L13 1" stroke="#2A3647" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </span>
+            </span>
+            <span>I accept the <a routerLink="/privacy-policy">Privacy policy</a></span>
+          </label>
+          @if (privacyError()) {
+            <p class="field-error privacy-error">{{ privacyError() }}</p>
+          }
+
+          @if (errorMessage) {
+            <p class="form-error">{{ errorMessage }}</p>
+          }
+
+          <button type="submit" class="signup-btn" [disabled]="!isFormComplete">
+            {{ isLoading ? 'Signing up...' : 'Sign up' }}
+          </button>
+        </form>
+      </article>
+    </main>
+
+    <footer class="signup-footer">
+      <a routerLink="/privacy-policy">Privacy Policy</a>
+      <a routerLink="/legal-notice">Legal notice</a>
+    </footer>
+
+    <div class="signup-toast" [class.show]="showToast()" aria-hidden="true">
+      You Signed Up successfully
+    </div>
+  </div>
+</section>

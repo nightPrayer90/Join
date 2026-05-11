@@ -43,13 +43,26 @@
             <input
               id="password"
               name="password"
-              type="password"
+              [type]="passwordVisible ? 'text' : 'password'"
               placeholder="Password"
               autocomplete="current-password"
               [(ngModel)]="password"
               (input)="onPasswordInput()"
+              (focus)="onPasswordFocus()"
+              (blur)="onPasswordBlur()"
               [attr.aria-invalid]="!!passwordError">
-            <img src="assets/icons/lock.png" alt="" aria-hidden="true" class="input-icon">
+            @if (passwordFocused) {
+              <button
+                type="button"
+                class="password-toggle"
+                [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'"
+                (mousedown)="$event.preventDefault()"
+                (click)="togglePasswordVisibility()">
+                <img [src]="passwordVisible ? 'assets/icons/eye.svg' : 'assets/icons/eye-off.svg'" alt="" aria-hidden="true">
+              </button>
+            } @else {
+              <img src="assets/icons/lock.png" alt="" aria-hidden="true" class="input-icon">
+            }
           </div>
           @if (passwordError) {
             <p class="field-error">{{ passwordError }}</p>
@@ -61,9 +74,9 @@
 
           <div class="action-buttons">
             <button type="submit" class="btn-primary" [disabled]="isLoading">
-              {{ isLoading ? 'Logging in...' : 'Log in' }}
+              {{ isLoading ? 'Loading...' : 'Log in' }}
             </button>
-            <button type="button" class="btn-secondary" (click)="onGuestLogin()">Guest Log in</button>
+            <button type="button" class="btn-secondary" [disabled]="isLoading" (click)="onGuestLogin()">Guest Log in</button>
           </div>
 
           <p class="auth-hint">
@@ -77,5 +90,9 @@
       <a routerLink="/privacy-policy">Privacy Policy</a>
       <a routerLink="/legal-notice">Legal Notice</a>
     </footer>
+
+    <div class="login-toast" [class.show]="showToast()" aria-hidden="true">
+      You logged in successfully
+    </div>
   </div>
 </section>

@@ -63,6 +63,13 @@ export class Contacts {
   fullNameFrom(contact: ContactsModel): string {
     return contact.full_name.trim();
   }
+
+  /**
+   * Returns the logged-in user's email for contact name highlighting.
+   */
+  currentUserEmail(): string | null {
+    return this.dbService.user()?.email ?? null;
+  }
   //#endregion ------------------------------------------------------------------------------------
   //#region contact details -----------------------------------------------------------------------
   // open contact from contact details

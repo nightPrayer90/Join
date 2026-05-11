@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { createClient, RealtimeChannel, Session, User } from '@supabase/supabase-js';
+import { createClient, RealtimeChannel, User } from '@supabase/supabase-js';
 import { Contact } from '../shared/interface/contact-interface';
 import { ContactsModel } from '../shared/models/contacts-model';
 import { TasksModel } from '../shared/models/tasks-model';
@@ -67,37 +67,33 @@ export class Supabase {
    */
   private initAuthListener(): void {
     this.supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) this.initUserIsLoggedIn(session);
-      else this.initUserIsGuest();
+      if (!session?.user) {
+        this.clearAuthState();
+        return;
+      }
+      this.user.set(session.user);
+      if (event !== 'SIGNED_IN') {
+        window.setTimeout(() => this.loadAppData(), 0);
+      }
     });
   }
 
   /**
-   * Handles initialization - user state.
+   * Handles initialization - task and contact data.
    */
-  private initUserIsLoggedIn(session: Session): void {
-    this.user.set(session.user);
-    this.getContacts();
-    this.getTasks;
-  }
-
-  /**
-   * Handles initialization - guest state.
-   */
-  private initUserIsGuest(): void {
-    this.user.set(null);
+  private loadAppData(): void {
     this.getContacts();
     this.getTasks();
   }
 
   /**
-   * Subscribes to UPDATE events - Updates the local contacts list by replacing the modified contact.
+   * Subscribes to INSERT events - Adds new contacts to the local contacts list.
    */
   private subscribeContacsInsert(): void {
     this.channelInsert = this.supabase
       .channel('contacts-insert')
       .on( 'postgres_changes', { event: 'INSERT', schema: 'public', table: 'contacts' },
-        (payload) => { this.contactsList.update((list) => [...list, new ContactsModel(payload.new as Contact)]); },
+        (payload) => { this.addContactToState(new ContactsModel(payload.new as Contact)); },
       )
       .subscribe();
   }
@@ -182,17 +178,26 @@ export class Supabase {
 
   //#region USER AUTH -----------------------------------------------------------------------------
   /**
-   * Registers a new user and dont! logs them in.
+   * Registers a new user and creates the matching user contact.
+   * @param name User full name
    * @param email User email address
    * @param password User password
    */
-  async signup(email: string, password: string): Promise<string | null> {
-    const { error } = await this.supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) return this.errorMessageHandler(error);
-    return 'Check your email to confirm your account';
+  async signup(name: string, email: string, password: string): Promise<string | null> {
+    try {
+      const { data, error } = await this.supabase.auth.signUp({
+        email, password, options: { data: { full_name: name } },
+      });
+      if (error) return this.errorMessageHandler(error);
+      if (data.user?.identities?.length === 0) return 'This email is already registered.';
+      if (!data.session) return 'Please confirm your email address.';
+      this.user.set(data.user);
+      await this.ensureUserContact(name, email);
+      this.loadAppData();
+      return null;
+    } catch (error) {
+      return this.errorMessageHandler(error);
+    }
   }
 
   /**
@@ -202,13 +207,31 @@ export class Supabase {
    * @returns Promise<string | null> Returns error message or null if successful
    */
   async login(email: string, password: string): Promise<string | null> {
-    const { data, error } = await this.supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) return this.errorMessageHandler(error);
-    this.user.set(data.user);
-    return null;
+    try {
+      const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
+      if (error) return this.errorMessageHandler(error);
+      this.user.set(data.user);
+      this.loadAppData();
+      return null;
+    } catch (error) {
+      return this.errorMessageHandler(error);
+    }
+  }
+
+  /**
+   * Logs in with a real Supabase anonymous guest user.
+   * @returns Promise<string | null> Error message or null if successful
+   */
+  async loginAsGuest(): Promise<string | null> {
+    try {
+      const { data, error } = await this.supabase.auth.signInAnonymously();
+      if (error) return this.errorMessageHandler(error);
+      this.user.set(data.user);
+      this.loadAppData();
+      return null;
+    } catch (error) {
+      return this.errorMessageHandler(error);
+    }
   }
 
   /**
@@ -216,7 +239,34 @@ export class Supabase {
    */
   async logout(): Promise<void> {
     await this.supabase.auth.signOut();
+    this.clearAuthState();
+  }
+
+  /**
+   * Clears the current auth-related local state.
+   */
+  private clearAuthState(): void {
     this.user.set(null);
+    this.contactsList.set([]);
+    this.tasksList.set([]);
+  }
+
+  /**
+   * Restores an existing Supabase session for route guards and page reloads.
+   * @returns True when a logged-in or anonymous Supabase user exists
+   */
+  async hasActiveSession(): Promise<boolean> {
+    try {
+      if (this.user()) return true;
+      const { data } = await this.supabase.auth.getSession();
+      const user = data.session?.user ?? null;
+      this.user.set(user);
+      if (user) this.loadAppData();
+      return user !== null;
+    } catch {
+      this.clearAuthState();
+      return false;
+    }
   }
 
   /**
@@ -241,11 +291,33 @@ export class Supabase {
         return 'Email or password is incorrect.';
       case 'over_request_rate_limit':
         return 'Too many attempts. Please try again later.';
-      case 'request_timeout':
-        return 'Request timed out. Please try again.';
+      case 'anonymous_provider_disabled':
+        return 'Guest login is not enabled in Supabase.';
+      case 'email_exists':
+      case 'user_already_exists':
+        return 'This email is already registered.';
       default:
         return 'Something went wrong. Please try again.';
     }
+  }
+
+  /**
+   * Creates the current user contact if no contact with the same email exists.
+   * @param name User full name
+   * @param email User email
+   */
+  private async ensureUserContact(name: string, email: string): Promise<void> {
+    await this.getContacts();
+    const cleanEmail = this.normalizeEmail(email);
+    const exists = this.contactsList().some(contact => this.normalizeEmail(contact.email) === cleanEmail);
+    if (exists) return;
+    await this.addContact(new ContactsModel({
+      full_name: name,
+      email: cleanEmail,
+      phone: '',
+      avatar_color: '#29abe2',
+      isUser: true,
+    }));
   }
   //#endregion ------------------------------------------------------------------------------------
   
@@ -267,6 +339,26 @@ export class Supabase {
       contactModels.push(new ContactsModel(data[i]));
     }
     this.contactsList.set(contactModels);
+  }
+
+  /**
+   * Adds a contact to local state only if it is not already present.
+   * @param contact Contact model from realtime insert
+   */
+  private addContactToState(contact: ContactsModel): void {
+    this.contactsList.update((list) => {
+      const email = this.normalizeEmail(contact.email);
+      const exists = list.some(item => item.id === contact.id || this.normalizeEmail(item.email) === email);
+      return exists ? list : [...list, contact];
+    });
+  }
+
+  /**
+   * Normalizes email values before comparing or saving them.
+   * @param email Email value
+   */
+  private normalizeEmail(email: string): string {
+    return email.trim().toLowerCase();
   }
 
   /**
@@ -383,4 +475,3 @@ export class Supabase {
   }
   //#endregion
 }
-

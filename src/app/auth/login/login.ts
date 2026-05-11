@@ -14,6 +14,7 @@ export class Login {
   private readonly postAnimationWaitMs = 1000;
   private dbService = inject(Supabase);
   private router = inject(Router);
+  private toastTimeoutId: number | null = null;
 
   email: string = '';
   password: string = '';
@@ -21,7 +22,10 @@ export class Login {
   emailError: string = '';
   passwordError: string = '';
   isLoading: boolean = false;
+  passwordFocused = false;
+  passwordVisible = false;
   showSplash = signal(true);
+  showToast = signal(false);
 
   constructor() {
     window.setTimeout(() => {
@@ -37,6 +41,19 @@ export class Login {
   onPasswordInput(): void {
     this.passwordError = '';
     this.errorMessage = '';
+  }
+
+  onPasswordFocus(): void {
+    this.passwordFocused = true;
+  }
+
+  onPasswordBlur(): void {
+    this.passwordFocused = false;
+    this.passwordVisible = false;
+  }
+
+  togglePasswordVisibility(): void {
+    this.passwordVisible = !this.passwordVisible;
   }
 
   private validateEmail(): boolean {
@@ -78,22 +95,48 @@ export class Login {
     if (!this.validateForm()) return;
 
     this.isLoading = true;
-    const error = await this.dbService.login(this.email.trim(), this.password);
-
-    this.isLoading = false;
-    if (error) {
-      this.errorMessage = error;
-      return;
+    try {
+      const error = await this.dbService.login(this.email.trim(), this.password);
+      if (error) {
+        this.errorMessage = error;
+        return;
+      }
+      this.openToast();
+    } catch {
+      this.errorMessage = 'Login failed. Please try again.';
+    } finally {
+      this.isLoading = false;
     }
-
-    await this.router.navigateByUrl('/summary');
   }
 
   async onGuestLogin(): Promise<void> {
-    await this.router.navigateByUrl('/summary');
+    if (this.isLoading) return;
+    this.errorMessage = '';
+    this.isLoading = true;
+    try {
+      const error = await this.dbService.loginAsGuest();
+      if (error) {
+        this.errorMessage = error;
+        return;
+      }
+      this.openToast();
+    } catch {
+      this.errorMessage = 'Guest login failed. Please try again.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   isLoggedIn(): boolean {
     return this.dbService.isLoggedIn();
+  }
+
+  private openToast(): void {
+    if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
+    this.showToast.set(true);
+    this.toastTimeoutId = window.setTimeout(() => {
+      this.showToast.set(false);
+      this.router.navigateByUrl('/summary');
+    }, 1200);
   }
 }

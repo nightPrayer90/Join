@@ -45,6 +45,7 @@
   height: 32px;
   border-radius: 50%;
   color: $color-text-subtle;
+  text-decoration: none;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
@@ -101,9 +102,15 @@
 }
 
 .menu-item {
+  border: unset;
+  background: transparent;
+  padding: 0;
   color: $color-text-muted;
+  font-family: inherit;
   font-size: $font-size-lg;
   text-decoration: none;
+  text-align: left;
+  cursor: pointer;
   transition: color 0.2s ease;
 
   &:hover,
