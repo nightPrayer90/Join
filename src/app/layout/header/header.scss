@@ -51,7 +51,8 @@
     color 0.2s ease;
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &.is-active {
     background-color: $color-bg-hover-light;
     color: $color-text;
     outline: none;

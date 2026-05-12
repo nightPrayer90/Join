@@ -1,0 +1,132 @@
+@use '../../../styles/colors' as *;
+@use '../../../styles/typography' as *;
+@use '../../../styles/breakpoints' as *;
+
+:host {
+  display: block;
+  width: 100%;
+  background: $color-bg-page;
+  min-height: calc(100vh - 96px);
+  box-sizing: border-box;
+}
+
+.privacy-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 48px clamp(24px, 6vw, 80px) 80px;
+  box-sizing: border-box;
+  font-family: $font-family-base;
+  color: $color-text;
+}
+
+.privacy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.privacy-title {
+  margin: 0;
+  font-size: 61px;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  color: #000000;
+  letter-spacing: -0.5px;
+}
+
+.privacy-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-bg-hover-light;
+    outline: none;
+  }
+}
+
+.privacy-intro {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: $color-text;
+}
+
+.privacy-block {
+  margin-top: 24px;
+
+  p {
+    margin: 0 0 16px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: $color-text;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.section-title {
+  margin: 0 0 16px;
+  font-size: 32px;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+  color: #000000;
+}
+
+.block-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: $font-weight-bold;
+  line-height: 1.3;
+  color: #000000;
+}
+
+.privacy-list {
+  margin: 0 0 16px 1.25rem;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: $color-text;
+
+  li {
+    margin: 0 0 4px;
+  }
+
+  strong {
+    font-weight: $font-weight-bold;
+  }
+}
+
+.brand {
+  color: $color-accent;
+}
+
+.privacy-date {
+  margin: 32px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: $color-text;
+}
+
+@include tablet {
+  .privacy-title {
+    font-size: 47px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+}
