@@ -1,5 +1,8 @@
 import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Supabase } from '../../service/supabase';
+import { Router } from '@angular/router'; 
+import { computed } from '@angular/core';
 
 @Component({
   selector: 'app-header',
