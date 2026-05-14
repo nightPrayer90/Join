@@ -9,11 +9,11 @@
     <div class="summary-content">
         <div class="summary">
             <div class="row">
-                <!-- To-Do -->
-                <button class="row__container" [routerLink]="['/board']">
-                    <!-- icon -->
+                <!-- to-do -->
+                <button class="row__container" [routerLink]="['/board']" aria-label="Open to-do tasks">
                     <div class="row__container__icon color-icon">
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <mask id="mask0_466048_6091" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0"
                                 width="32" height="32">
                                 <rect width="32" height="32" fill="currentColor" />
@@ -25,78 +25,70 @@
                             </g>
                         </svg>
                     </div>
-                    <!-- value/ label -->
                     <p class="row__container__value">{{ todoCount() }}
                         <span class="row__container__label">To-do</span>
                     </p>
                 </button>
 
-                <!-- Done -->
-                <button class="row__container" [routerLink]="['/board']">
+                <!-- done -->
+                <button class="row__container" [routerLink]="['/board']" aria-label="Open completed tasks">
                     <div class="row__container__icon color-icon">
-                        <svg width="37" height="30" viewBox="0 0 37 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg aria-hidden="true" width="37" height="30" viewBox="0 0 37 30" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <path d="M3.5 14.566L14.7288 25.6321L33.4434 3.5" stroke="currentColor" stroke-width="7"
                                 stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
-
                     </div>
-                    <!-- value/ label -->
                     <p class="row__container__value">{{ doneCount() }}
                         <span class="row__container__label">Done</span>
                     </p>
                 </button>
             </div>
 
-            <!-- Tasks-->
             <div class="row">
-                <button class="row__container" [routerLink]="['/board']">
-                    <!-- toDo - 1 -->
+                <!-- next task-->
+                <button class="row__container" [routerLink]="['/board']" aria-label="Open upcoming priority task">
                     @switch( nextPriority() ) {
+                    @case (-1) {
+                    <div class="row__container__icon color-icon"></div>
+                    }
                     @case (1) {
                     <div class="row__container__icon color-urgent">
-                        <svg width="35" height="26" viewBox="0 0 35 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg aria-hidden="true" width="35" height="26" viewBox="0 0 35 26" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <path
                                 d="M32.3128 25.1164C31.9118 25.1171 31.5211 24.9876 31.1982 24.7468L17.093 14.2169L2.98773 24.7468C2.78971 24.8949 2.56479 25.0021 2.32583 25.0622C2.08687 25.1224 1.83854 25.1343 1.59502 25.0974C1.3515 25.0604 1.11755 24.9753 0.906549 24.8468C0.695544 24.7184 0.511607 24.5491 0.365241 24.3487C0.218876 24.1483 0.112947 23.9207 0.0535029 23.6789C-0.00594092 23.4371 -0.0177355 23.1858 0.0187927 22.9394C0.0925645 22.4417 0.358687 21.9941 0.758615 21.6949L15.9784 10.3215C16.301 10.0799 16.6917 9.94946 17.093 9.94946C17.4943 9.94946 17.885 10.0799 18.2075 10.3215L33.4274 21.6949C33.7452 21.9319 33.9808 22.2645 34.1007 22.6451C34.2207 23.0257 34.2187 23.4349 34.0951 23.8143C33.9715 24.1937 33.7326 24.5239 33.4125 24.7577C33.0925 24.9916 32.7076 25.1171 32.3128 25.1164Z"
-                                fill="currentColor" />
-                            <path
-                                d="M32.3128 15.1645C31.9118 15.1652 31.5211 15.0357 31.1983 14.7949L17.093 4.265L2.98774 14.7949C2.58781 15.094 2.08684 15.2201 1.59502 15.1455C1.10321 15.0708 0.660849 14.8015 0.365249 14.3968C0.06965 13.9921 -0.0549714 13.4852 0.0188004 12.9875C0.0925723 12.4898 0.358694 12.0421 0.758623 11.743L15.9784 0.36961C16.301 0.127979 16.6917 -0.00244141 17.093 -0.00244141C17.4943 -0.00244141 17.885 0.127979 18.2076 0.36961L33.4274 11.743C33.7452 11.98 33.9808 12.3126 34.1007 12.6932C34.2207 13.0738 34.2187 13.483 34.0951 13.8624C33.9715 14.2418 33.7326 14.572 33.4125 14.8058C33.0925 15.0397 32.7076 15.1652 32.3128 15.1645Z"
                                 fill="currentColor" />
                         </svg>
                     </div>
                     }
                     @case (2) {
                     <div class="row__container__icon color-medium">
-                        <svg width="35" height="35" viewBox="0 0 35 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg aria-hidden="true" width="35" height="35" viewBox="0 0 35 19" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <path
                                 d="M33.0822 16H1.9178C1.40917 16 0.921372 15.7988 0.561714 15.4409C0.202057 15.083 0 14.5978 0 14.091C0 13.5842 0.202057 13.099 0.561714 12.7411C0.921372 12.3832 1.40917 12.182 1.9178 12.182H33.0822C33.5908 12.182 34.0786 12.3832 34.4383 12.7411C34.7979 13.099 35 13.5842 35 14.091C35 14.5978 34.7979 15.083 34.4383 15.4409C34.0786 15.7988 33.5908 16 33.0822 16Z"
-                                fill="currentColor" />
-                            <path
-                                d="M33.0822 6.6152H1.9178C1.40917 6.6152 0.921372 6.41401 0.561714 6.0561C0.202057 5.6982 0 5.213 0 4.70618C0 4.19936 0.202057 3.71416 0.561714 3.35626C0.921372 2.99835 1.40917 2.79716 1.9178 2.79716H33.0822C33.5908 2.79716 34.0786 2.99835 34.4383 3.35626C34.7979 3.71416 35 4.19936 35 4.70618C35 5.213 34.7979 5.6982 34.4383 6.0561C34.0786 6.41401 33.5908 6.6152 33.0822 6.6152Z"
                                 fill="currentColor" />
                         </svg>
                     </div>
                     }
                     @case (3) {
                     <div class="row__container__icon color-low">
-                        <svg width="35" height="35" viewBox="0 0 35 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg aria-hidden="true" width="35" height="35" viewBox="0 0 35 20" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <path
                                 d="M17.5 15.1746C17.0895 15.1753 16.6895 15.0445 16.359 14.8014L0.778598 3.43034C0.575881 3.2803 0.404661 3.09103 0.274716 2.87395C0.144771 2.65686 0.058639 2.41625 0.0212454 2.16505C-0.0542745 1.6574 0.0732996 1.14046 0.375904 0.727447C0.678509 0.314436 1.13085 0.0398955 1.63482 -0.0362964C2.13879 -0.112488 2.65113 0.0162261 3.06054 0.319456L17.5 10.934L31.9395 0.319456C32.1422 0.169412 32.3724 0.0608946 32.617 0.0000800194C32.8616 -0.0607346 33.1159 -0.0728089 33.3652 -0.0362964C33.6145 0.000216128 33.8549 0.0843173 34.0716 0.211278C34.2883 0.338239 34.4771 0.505627 34.6266 0.707728C34.7761 0.909829 34.8847 1.14031 34.9456 1.38512C35.0065 1.62993 35.0185 1.88464 34.9821 2.13477C34.9456 2.3849 34.8616 2.62541 34.7348 2.84247C34.6081 3.05953 34.4409 3.2486 34.2383 3.39864L18.6579 14.7697C18.3274 15.0128 17.9274 15.1436 17.5 15.1746Z"
-                                fill="currentColor" />
-                            <path
-                                d="M17.5 25.1428C17.0895 25.1435 16.6895 25.0127 16.359 24.7696L0.778598 13.3985C0.369188 13.0953 0.096765 12.6414 0.0212454 12.1337C-0.0542745 11.6261 0.0732996 11.1092 0.375904 10.6962C0.678509 10.2831 1.13085 10.0086 1.63482 9.93243C2.13879 9.85624 2.65113 9.98495 3.06054 10.2882L17.5 20.9027L31.9395 10.2882C32.3489 9.98495 32.8612 9.85624 33.3652 9.93243C33.8692 10.0086 34.3215 10.2831 34.6241 10.6962C34.9267 11.1092 35.0543 11.6261 34.9788 12.1337C34.9032 12.6414 34.6308 13.0953 34.2214 13.3985L18.641 24.7696C18.3105 25.0127 17.9105 25.1435 17.5 25.1428Z"
                                 fill="currentColor" />
                         </svg>
                     </div>
                     }
                     }
-                    <!-- value/ label -->
-                    <p class="row__container__value"> 1
+                    <p class="row__container__value">1
                         <span class="row__container__label">{{ nextPriorityLabel() }}</span>
                     </p>
 
                     <div class="row__container__separator"></div>
-
-                    <p class="row__container__date"> {{ nextDate() }}
+                    <p class="row__container__date">{{ nextDate() }}
                         <br><span>Upcomming Deadline</span>
                     </p>
                 </button>
@@ -104,34 +96,33 @@
 
             <div class="row">
                 <!-- tasks on board -->
-                <button class="row__container center" [routerLink]="['/board']">
-                    <!-- value/ label -->
+                <button class="row__container center" [routerLink]="['/board']" aria-label="Open all board tasks">
                     <p class="row__container__value">{{ dbService.tasksList().length }}
                         <span class="row__container__label">Tasks in Board</span>
                     </p>
                 </button>
 
                 <!-- tasks in progress -->
-                <button class="row__container center" [routerLink]="['/board']">
-                    <!-- value/ label -->
-                    <p class="row__container__value"> {{ inProgressCount() }}
+                <button class="row__container center" [routerLink]="['/board']" aria-label="Open tasks in progress">
+                    <p class="row__container__value">{{ inProgressCount() }}
                         <span class="row__container__label">Taks in Progress</span>
                     </p>
                 </button>
 
-                <!-- Awaiting Feedback -->
-                <button class="row__container center" [routerLink]="['/board']">
-                    <!-- value/ label -->
-                    <p class="row__container__value"> {{ awaitFeedbackCount() }}
+                <!-- awaiting feedback -->
+                <button class="row__container center" [routerLink]="['/board']"
+                    aria-label="Open awaiting feedback tasks">
+                    <p class="row__container__value">{{ awaitFeedbackCount() }}
                         <span class="row__container__label">Awaiting Feedback</span>
                     </p>
                 </button>
             </div>
         </div>
 
+        <!-- user -->
         <div class="user">
             <p class="user__text">{{ timeString() }} <br>
-                <span> {{ userString() }} </span>
+                <span>{{ userString() }}</span>
             </p>
         </div>
     </div>
@@ -140,7 +131,7 @@
     <div class="welcome-screen" [class.fade-out]="isFadingOut()">
         <div class="user-container">
             <p class="user__text text-center">{{ timeString() }} <br>
-                <span > {{ userString() }} </span>
+                <span>{{ userString() }}</span>
             </p>
         </div>
     </div>

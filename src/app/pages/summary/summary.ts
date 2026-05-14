@@ -34,7 +34,7 @@ export class Summary {
     this.handleWelcomeScreen();
   }
 
-  handleWelcomeScreen(): void {
+  private handleWelcomeScreen(): void {
     if (this.route.snapshot.paramMap.get('myParam') === '') return;
 
     if (window.innerWidth < 768) {
@@ -44,14 +44,14 @@ export class Summary {
     } else this.showWelcomeScreen.set(false);
   }
 
-  getCountByStatus(status: string): number {
+  private getCountByStatus(status: string): number {
     const filterCount: number = this.dbService
       .tasksList()
       .filter((task) => task.task_status === status).length;
     return filterCount;
   }
 
-  getNextTask(): TasksModel | null {
+  private getNextTask(): TasksModel | null {
     const filteredTasks: TasksModel[] = this.dbService
       .tasksList()
       .filter((task) => task.task_status !== 'done');
@@ -66,7 +66,7 @@ export class Summary {
     return nextTask;
   }
 
-  getNextPriority(): number {
+  private getNextPriority(): number {
     const task: TasksModel | null = this.nextUpcomingTask();
     if (task !== null && task.priority !== undefined) {
       return task.priority;
@@ -74,20 +74,16 @@ export class Summary {
     return -1;
   }
 
-  getNextPriorityLabel(): string {
+  private getNextPriorityLabel(): string {
     switch (this.nextPriority()) {
-      case 1:
-        return 'Urgent';
-      case 2:
-        return 'Medium';
-      case 3:
-        return 'Low';
-      default:
-        return '-';
+      case 1: return 'Urgent';
+      case 2: return 'Medium';
+      case 3: return 'Low';
+      default: return '-';
     }
   }
 
-  getNextDate(): string {
+  private getNextDate(): string {
     const task: TasksModel | null = this.nextUpcomingTask();
     if (task !== null) {
       return task.date.toLocaleDateString('en-US', {
@@ -99,7 +95,7 @@ export class Summary {
     return '-';
   }
 
-  getTimeString(): string {
+  private getTimeString(): string {
     const currentHour: number = new Date().getHours();
     let greeting = 'Good night';
     if (currentHour >= 5 && currentHour < 12) greeting = 'Good morning';
@@ -111,7 +107,7 @@ export class Summary {
     return greeting + sign;
   }
 
-  getUserName(): string {
+  private getUserName(): string {
     const user: User | null = this.dbService.user();
     if (user === null || user.is_anonymous) return '';
     const email: string = user.email?.toLowerCase() ?? '';
