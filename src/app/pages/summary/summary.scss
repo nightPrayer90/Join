@@ -5,7 +5,11 @@
 
 section {
   position: relative;
-  padding: clamp(40px, 5dvw, 100px);
+  padding: 80px;
+
+   @include notebook {
+    padding:  clamp(40px, 5dvw, 80px);
+  }
 
   @include mobile {
     padding: 40px 16px;
@@ -25,7 +29,7 @@ section {
   }
 
   h1 {
-    font-size: clamp(47px, 5dvw, 60px);
+    font-size: clamp(47px, 6dvw, 60px);
     font-weight: 700;
     text-align: left;
     color: black;
@@ -41,7 +45,7 @@ section {
     }
   }
   p {
-    font-size: clamp(20px, 2dvw, 28px);
+    font-size: clamp(20px, 3dvw, 28px);
     font-weight: 400;
     color: $color-text;
   }
@@ -173,7 +177,7 @@ section {
 
     &__container:hover {
       background: $color-primary-hover;
-      transform: scale(1.05);
+      transform: scale(1.03);
       box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
 
       .row__container__value,

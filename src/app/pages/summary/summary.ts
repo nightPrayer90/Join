@@ -16,12 +16,17 @@ export class Summary {
   private route = inject(ActivatedRoute);
 
   nextUpcomingTask = computed<TasksModel | null>(() => this.getNextTask());
-  showWelcomeScreen: WritableSignal<boolean> = signal(false);
-  isFadingOut = signal(false);
-
+  nextPriority = computed<number>(() => this.getNextPriority());
+  nextPriorityLabel = computed<string>(() => this.getNextPriorityLabel());
+  nextDate = computed<string>(() => this.getNextDate());
+  todoCount = computed<number>(() => this.getCountByStatus('todo'));
+  doneCount = computed<number>(() => this.getCountByStatus('done'));
+  inProgressCount = computed<number>(() => this.getCountByStatus('in-progress'));
+  awaitFeedbackCount = computed<number>(() => this.getCountByStatus('await-feedback'));
+  showWelcomeScreen = signal<boolean>(false);
+  isFadingOut = signal<boolean>(false);
   userString = computed<string>(() => this.getUserName());
   timeString = computed<string>(() => this.getTimeString());
-
 
   constructor() {
     this.getUserName();
@@ -39,7 +44,7 @@ export class Summary {
     } else this.showWelcomeScreen.set(false);
   }
 
-  countByStatus(status: string): number {
+  getCountByStatus(status: string): number {
     const filterCount: number = this.dbService
       .tasksList()
       .filter((task) => task.task_status === status).length;
@@ -70,16 +75,16 @@ export class Summary {
   }
 
   getNextPriorityLabel(): string {
-    const priorityId: number = this.getNextPriority();
-    switch (priorityId) {
+    switch (this.nextPriority()) {
       case 1:
         return 'Urgent';
       case 2:
         return 'Medium';
       case 3:
         return 'Low';
+      default:
+        return '-';
     }
-    return '-';
   }
 
   getNextDate(): string {
@@ -106,7 +111,7 @@ export class Summary {
     return greeting + sign;
   }
 
-   getUserName(): string {
+  getUserName(): string {
     const user: User | null = this.dbService.user();
     if (user === null || user.is_anonymous) return '';
     const email: string = user.email?.toLowerCase() ?? '';

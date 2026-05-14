@@ -26,7 +26,7 @@
                         </svg>
                     </div>
                     <!-- value/ label -->
-                    <p class="row__container__value">{{ countByStatus("todo") }}
+                    <p class="row__container__value">{{ todoCount() }}
                         <span class="row__container__label">To-do</span>
                     </p>
                 </button>
@@ -41,7 +41,7 @@
 
                     </div>
                     <!-- value/ label -->
-                    <p class="row__container__value">{{ countByStatus("done") }}
+                    <p class="row__container__value">{{ doneCount() }}
                         <span class="row__container__label">Done</span>
                     </p>
                 </button>
@@ -51,7 +51,7 @@
             <div class="row">
                 <button class="row__container" [routerLink]="['/board']">
                     <!-- toDo - 1 -->
-                    @switch(getNextPriority()) {
+                    @switch( nextPriority() ) {
                     @case (1) {
                     <div class="row__container__icon color-urgent">
                         <svg width="35" height="26" viewBox="0 0 35 26" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -91,12 +91,12 @@
                     }
                     <!-- value/ label -->
                     <p class="row__container__value"> 1
-                        <span class="row__container__label">{{ getNextPriorityLabel() }}</span>
+                        <span class="row__container__label">{{ nextPriorityLabel() }}</span>
                     </p>
 
                     <div class="row__container__separator"></div>
 
-                    <p class="row__container__date"> {{ getNextDate() }}
+                    <p class="row__container__date"> {{ nextDate() }}
                         <br><span>Upcomming Deadline</span>
                     </p>
                 </button>
@@ -114,7 +114,7 @@
                 <!-- tasks in progress -->
                 <button class="row__container center" [routerLink]="['/board']">
                     <!-- value/ label -->
-                    <p class="row__container__value"> {{ countByStatus("in-progress") }}
+                    <p class="row__container__value"> {{ inProgressCount() }}
                         <span class="row__container__label">Taks in Progress</span>
                     </p>
                 </button>
@@ -122,7 +122,7 @@
                 <!-- Awaiting Feedback -->
                 <button class="row__container center" [routerLink]="['/board']">
                     <!-- value/ label -->
-                    <p class="row__container__value"> {{ countByStatus("await-feedback") }}
+                    <p class="row__container__value"> {{ awaitFeedbackCount() }}
                         <span class="row__container__label">Awaiting Feedback</span>
                     </p>
                 </button>
@@ -130,7 +130,7 @@
         </div>
 
         <div class="user">
-            <p class="user__text">{{ getTimeString() }} <br>
+            <p class="user__text">{{ timeString() }} <br>
                 <span> {{ userString() }} </span>
             </p>
         </div>
