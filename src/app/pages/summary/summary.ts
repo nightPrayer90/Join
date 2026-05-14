@@ -39,7 +39,7 @@ export class Summary {
    * when the page is opened with a route parameter.
    */
   private handleWelcomeScreen(): void {
-    if (this.route.snapshot.paramMap.get('myParam') === '') return;
+    if (this.route.snapshot.paramMap.get('myParam') !== '') return;
 
     if (window.innerWidth < 768) {
       this.showWelcomeScreen.set(true);
