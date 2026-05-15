@@ -171,6 +171,14 @@ export class TasksModel {
 
   //#region DATE HELPERS --------------------------------------------------------------------------
   /**
+   * Returns the task date as a native Date object.
+   * @returns {Date}
+   */
+  get date(): Date {
+    return new Date(this._date);
+  }
+
+  /**
    * Sets the task date (automatically converts to ISO string).
    * @param {Date} value
    */

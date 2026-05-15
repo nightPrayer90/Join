@@ -1,0 +1,249 @@
+@use '../../../styles/colors' as *;
+@use '../../../styles/typography' as *;
+@use '../../../styles/breakpoints' as *;
+@use '../../../styles/mixins' as *;
+
+section {
+  position: relative;
+  padding: 80px;
+
+   @include notebook {
+    padding:  clamp(40px, 5dvw, 80px);
+  }
+
+  @include mobile {
+    padding: 40px 16px;
+  }
+}
+
+.header {
+  @include flex-align-center;
+  margin-bottom: 60px;
+  gap: 32px;
+
+  @include notebook {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    gap: 0px;
+  }
+
+  h1 {
+    font-size: clamp(47px, 6dvw, 60px);
+    font-weight: 700;
+    text-align: left;
+    color: black;
+  }
+
+  .separator {
+    width: 4px;
+    height: 65px;
+    background: $color-accent;
+
+    @include notebook {
+      display: none;
+    }
+  }
+  p {
+    font-size: clamp(20px, 3dvw, 28px);
+    font-weight: 400;
+    color: $color-text;
+  }
+
+  .separator-underline {
+    display: none;
+    margin-top: 12px;
+    width: 90px;
+    height: 3px;
+    background: $color-accent;
+
+    @include notebook {
+      display: block;
+    }
+  }
+}
+
+.summary-content {
+  @include flex-align-center;
+}
+
+.summary {
+  position: relative;
+  @include flex-column;
+  align-self: flex-start;
+  max-width: 560px;
+  width: 100%;
+  gap: clamp(16px, 2dvw, 32px);
+
+  .row {
+    display: flex;
+    gap: clamp(16px, 2dvw, 32px);
+
+    &__container {
+      @include flex-align-center;
+      flex: 1;
+      padding: 37px 32px;
+      min-width: 0;
+      background: white;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-radius: 30px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+      transition: transform 0.1s ease;
+
+      @include mobile {
+        padding: clamp(8px, 5dvw, 32px);
+        border-radius: 20px;
+      }
+
+      &__icon {
+        @include flex-center;
+        flex-shrink: 0;
+        margin-left: 20px;
+        width: 69px;
+        height: 69px;
+        border-radius: 50%;
+
+        @include mobile {
+          margin-left: 0px;
+          width: clamp(40px, 10dvw, 69px);
+          height: clamp(40px, 10dvw, 69px);
+        }
+
+        svg {
+          flex-shrink: 1;
+          min-width: 0;
+          max-width: 50%;
+          color: inherit;
+        }
+      }
+
+      .color-icon {
+        background: $color-primary;
+        color: white;
+      }
+
+      .color-urgent {
+        background-color: #ff3d00;
+        color: white;
+      }
+
+      .color-medium {
+        background-color: #ffa800;
+        color: white;
+      }
+
+      .color-low {
+        background-color: #7ae229;
+        color: white;
+      }
+
+      &__value {
+        @include flex-column;
+        align-items: center;
+        width: 100px;
+        font-size: clamp(47px, 10dvw, 64px);
+        font-weight: 600;
+        line-height: 1.1;
+        color: black;
+      }
+
+      &__label {
+        font-size: clamp(16px, 3dvw, 20px);
+        font-weight: 400;
+        color: $color-text;
+      }
+
+      &__separator {
+        margin-left: clamp(8px, 5dvw, 60px);
+        margin-right: clamp(8px, 5dvw, 60px);
+        width: 2px;
+        height: 100%;
+        background: $color-border-input;
+      }
+
+      &__date {
+        font-size: 21px;
+        font-weight: 700;
+        text-align: left;
+        color: $color-text;
+        line-height: $line-height-tight;
+
+        span {
+          font-size: 16px;
+          font-weight: 400;
+          color: inherit;
+        }
+      }
+    }
+
+    &__container:hover {
+      background: $color-primary-hover;
+      transform: scale(1.02);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+
+      .row__container__value,
+      .row__container__label,
+      .row__container__date {
+        color: white;
+      }
+
+      .color-icon {
+        background: white;
+        color: $color-primary;
+      }
+    }
+
+    .center {
+      justify-content: center;
+    }
+  }
+}
+
+.user {
+  position: relative;
+  margin-left: clamp(20px, 3dvw, 64px);
+
+  @include notebook {
+    display: none;
+  }
+
+  &__text {
+    font-size: clamp(28px, 3dvw, 47px);
+    font-weight: 500;
+    line-height: $line-height-tight;
+    color: $color-text;
+
+    span {
+      font-size: clamp(36px, 3dvw, 64px);
+      font-weight: 700;
+      color: $color-accent;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.welcome-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: $color-bg-page;
+  opacity: 1;
+  transition: opacity 1s ease;
+
+  .user-container {
+    @include flex-align-center;
+    margin-top: 30dvh;
+    padding: 0 16px;
+  }
+
+  .text-center {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.fade-out {
+  opacity: 0;
+}
