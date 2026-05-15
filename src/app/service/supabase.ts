@@ -309,15 +309,9 @@ export class Supabase {
   private async ensureUserContact(name: string, email: string): Promise<void> {
     await this.getContacts();
     const cleanEmail = this.normalizeEmail(email);
-    const exists = this.contactsList().some(contact => this.normalizeEmail(contact.email) === cleanEmail);
+    const exists = this.contactsList().some(contact => contact.getNormalizeEmail() === cleanEmail);
     if (exists) return;
-    await this.addContact(new ContactsModel({
-      full_name: name,
-      email: cleanEmail,
-      phone: '',
-      avatar_color: '#29abe2',
-      isUser: true,
-    }));
+    await this.addContact(new ContactsModel({ full_name: name, email: cleanEmail, phone: '', avatar_color: '#FF4646', isUser: true, }));
   }
   //#endregion ------------------------------------------------------------------------------------
   
@@ -439,7 +433,6 @@ export class Supabase {
   /**
   * Adds a new task to the database. Sends a cleaned task object and returns the generated task ID.
   * @param {TasksModel} task - The task to be added
-  * @returns {Promise<number | null>} The new task ID or null if failed
   */
   async addTask(task: TasksModel): Promise<number | null> {
     const task_data = task.getCleanAddJson();
@@ -466,7 +459,6 @@ export class Supabase {
   /**
   * Deletes a task from the database by its ID.
   * @param {number} id - The ID of the task to delete
-  * @returns {Promise<void>}
   */
   async deleteTask(id: number): Promise<void> {
     const { error } = await this.supabase.from('tasks').delete().eq('id', id);

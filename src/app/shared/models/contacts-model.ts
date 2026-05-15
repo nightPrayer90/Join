@@ -66,10 +66,16 @@ export class ContactsModel implements Contact {
    */
   getDisplayName(currentUserEmail: string | null): string {
     if (!currentUserEmail) return this.full_name;
-    if (currentUserEmail.toLowerCase() === this.email.toLowerCase()) return `${this.full_name} (You)`;
+    if (currentUserEmail.toLowerCase() === this.email.toLowerCase())
+      return `${this.full_name} (You)`;
     return this.full_name;
   }
 
-
-
+  /**
+   * Normalizes email values before comparing or saving them.
+   * @param email Email value
+   */
+  getNormalizeEmail(): string {
+    return this.email.trim().toLowerCase();
+  }
 }

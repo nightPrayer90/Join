@@ -254,7 +254,7 @@ export class ContactDialog {
   }
 
   private getAvatarColor(): string {
-    const colors = ['#FF7A00', '#9327FF', '#6E52FF', '#FC71FF', '#FFBB2B', '#1FD7C1', '#3BA9E0', '#FF4646'];
+    const colors = ['#FF7A00', '#9327FF', '#6E52FF', '#FC71FF', '#FFBB2B', '#1FD7C1', '#3BA9E0'];
     const index = Math.floor(Math.random() * colors.length);
     return colors[index];
   }
