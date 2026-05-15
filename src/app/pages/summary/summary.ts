@@ -39,7 +39,7 @@ export class Summary {
    * when the page is opened with a route parameter.
    */
   private handleWelcomeScreen(): void {
-    if (this.route.snapshot.paramMap.get('fromLogin') !== '') return;
+    if (this.route.snapshot.paramMap.get('fromLogin') === '') return;
 
     if (window.innerWidth < 768) {
       this.showWelcomeScreen.set(true);
@@ -97,10 +97,14 @@ export class Summary {
    */
   private getNextPriorityLabel(): string {
     switch (this.nextPriority()) {
-      case 1: return 'Urgent';
-      case 2: return 'Medium';
-      case 3: return 'Low';
-      default: return '-';
+      case 1:
+        return 'Urgent';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'Low';
+      default:
+        return '-';
     }
   }
 
@@ -133,7 +137,7 @@ export class Summary {
     else if (currentHour >= 12 && currentHour < 18) greeting = 'Good afternoon';
     else if (currentHour >= 18 && currentHour < 22) greeting = 'Good evening';
     const user: User | null = this.dbService.user();
-    const sign: string = (user !== null && !user.is_anonymous) ? ',' : '!';
+    const sign: string = user !== null && !user.is_anonymous ? ',' : '!';
     return greeting + sign;
   }
 
