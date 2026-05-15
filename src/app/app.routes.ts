@@ -11,6 +11,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'summary', pathMatch: 'full' },
       { path: 'summary', canActivate: [authGuard], loadComponent: () => import('./pages/summary/summary').then(m => m.Summary) },
+      { path: 'summary/:fromLogin', canActivate: [authGuard], loadComponent: () => import('./pages/summary/summary').then(m => m.Summary) },
       { path: 'board', canActivate: [authGuard], loadComponent: () => import('./pages/board/board').then(m => m.Board) },
       { path: 'add-task', canActivate: [authGuard], loadComponent: () => import('./pages/add-task/add-task').then(m => m.AddTask) },
       { path: 'contacts', canActivate: [authGuard], loadComponent: () => import('./pages/contacts/contacts').then(m => m.Contacts) },

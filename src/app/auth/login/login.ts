@@ -136,7 +136,7 @@ export class Login {
     this.showToast.set(true);
     this.toastTimeoutId = window.setTimeout(() => {
       this.showToast.set(false);
-      this.router.navigateByUrl('/summary');
+      this.router.navigate(['/summary', true]);
     }, 1200);
   }
 }
