@@ -107,6 +107,10 @@
   }
 }
 
+.signup-mobile {
+  display: none;
+}
+
 .signup-link {
   display: inline-flex;
   align-items: center;
@@ -126,7 +130,8 @@
     border-color 0.1s ease;
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &:active {
     background: var(--join-blue);
     border-color: var(--join-blue);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -406,6 +411,21 @@
 
   .signup-desktop {
     display: none;
+  }
+
+  .signup-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 35px;
+    margin: 18px 0 32px;
+
+    span {
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.2;
+      color: #000000;
+    }
   }
 
   .login-card {

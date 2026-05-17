@@ -76,6 +76,14 @@ export class ContactsModel implements Contact {
    * @param email Email value
    */
   getNormalizeEmail(): string {
-    return this.email.trim().toLowerCase();
+    return ContactsModel.normalizeEmail(this.email);
+  }
+
+  /**
+   * Normalizes any email value before comparing or saving it.
+   * @param email Email value
+   */
+  static normalizeEmail(email: string): string {
+    return email.trim().toLowerCase();
   }
 }

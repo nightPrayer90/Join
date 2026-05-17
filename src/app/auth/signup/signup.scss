@@ -85,8 +85,8 @@
   }
 
   svg {
-    width: 24px;
-    height: 24px;
+    width: 21px;
+    height: 20px;
   }
 }
 
@@ -119,6 +119,19 @@ h1 {
   @include input-wrapper;
   width: 100%;
 
+  &::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    right: 44px;
+    bottom: 1px;
+    z-index: 1;
+    width: 38px;
+    border-radius: 0 10px 10px 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), $color-bg-surface 72%);
+    pointer-events: none;
+  }
+
   input {
     @include input-field;
     font-size: 20px;
@@ -128,6 +141,7 @@ h1 {
 
 .input-icon {
   @include input-icon;
+  z-index: 2;
   max-width: 24px;
   max-height: 24px;
   object-fit: contain;
@@ -137,6 +151,7 @@ h1 {
   position: absolute;
   right: 12px;
   top: 50%;
+  z-index: 2;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -268,14 +283,16 @@ h1 {
   position: fixed;
   left: 50%;
   bottom: 24px;
-  min-width: 298px;
-  height: 70px;
+  width: min(520px, calc(100vw - 48px));
+  min-height: 70px;
   padding: 0 24px;
   border-radius: 16px;
   background: $color-primary;
   color: $color-bg-surface;
   font-size: 20px;
   line-height: 1.2;
+  text-align: center;
+  white-space: normal;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -292,5 +309,197 @@ h1 {
 @include notebook {
   .signup-shell {
     padding: 48px 32px 32px;
+  }
+}
+
+@include tablet {
+  .signup-shell {
+    width: 100vw;
+    padding: 37px 16px 24px;
+  }
+
+  .logo {
+    width: 64px;
+  }
+
+  .signup-content {
+    align-items: center;
+    padding: 18px 0 16px;
+  }
+
+  .signup-card {
+    width: 100%;
+    max-width: 396px;
+    height: auto;
+    min-height: 475px;
+    padding: 32px 20px;
+    border-radius: 30px;
+  }
+
+  .back-btn {
+    top: 34px;
+    left: 20px;
+  }
+
+  h1 {
+    font-size: 47px;
+  }
+
+  .headline-separator {
+    width: 88px;
+    margin-top: 8px;
+  }
+
+  .signup-form {
+    width: 100%;
+    max-width: 396px;
+    margin-top: 28px;
+    gap: 12px;
+  }
+
+  .input-wrapper input {
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .privacy-row {
+    margin-top: 8px;
+    font-size: 16px;
+  }
+
+  .signup-btn {
+    width: 180px;
+    height: 48px;
+    font-size: 21px;
+  }
+
+  .signup-footer {
+    margin-top: 0;
+  }
+
+  .signup-toast {
+    width: min(420px, calc(100vw - 32px));
+    min-height: 68px;
+    padding: 12px 20px;
+    font-size: 18px;
+  }
+}
+
+@include mobile {
+  .signup-shell {
+    padding: 24px 16px 12px;
+  }
+
+  .logo {
+    width: 56px;
+  }
+
+  .signup-content {
+    padding: 16px 0 14px;
+  }
+
+  .signup-card {
+    max-width: 100%;
+    min-height: 0;
+    padding: 22px 12px 20px;
+    border-radius: 20px;
+  }
+
+  .back-btn {
+    top: 22px;
+    left: 14px;
+  }
+
+  .back-btn svg {
+    width: 21px;
+    height: 20px;
+  }
+
+  h1 {
+    font-size: 47px;
+  }
+
+  .headline-separator {
+    width: 88px;
+    height: 3px;
+    margin-top: 8px;
+  }
+
+  .signup-form {
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  .input-wrapper input {
+    height: 48px;
+    padding: 0 54px 0 21px;
+    border-radius: 10px;
+    font-size: 20px;
+  }
+
+  .input-icon {
+    right: 20px;
+    max-width: 24px;
+    max-height: 24px;
+  }
+
+  .input-wrapper::after {
+    right: 44px;
+    width: 34px;
+  }
+
+  .password-toggle {
+    right: 16px;
+    width: 32px;
+    height: 32px;
+
+    img,
+    svg {
+      max-width: 24px;
+      max-height: 24px;
+    }
+  }
+
+  .field-error,
+  .form-error {
+    min-height: 16px;
+    font-size: 14px;
+  }
+
+  .privacy-row {
+    gap: 10px;
+    margin-top: 8px;
+    font-size: 16px;
+  }
+
+  .privacy-check {
+    width: 18px;
+    height: 18px;
+  }
+
+  .signup-btn {
+    width: 180px;
+    min-width: 180px;
+    height: 48px;
+    margin-top: 6px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 21px;
+  }
+
+  .signup-footer {
+    gap: 24px;
+
+    a {
+      font-size: 16px;
+    }
+  }
+
+  .signup-toast {
+    width: min(340px, calc(100vw - 32px));
+    min-height: 64px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 16px;
   }
 }

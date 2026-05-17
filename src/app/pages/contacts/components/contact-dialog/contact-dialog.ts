@@ -23,6 +23,8 @@ export class ContactDialog {
   editContactId: number | null = null;
   fullName: string = '';
   email: string = '';
+  private originalEmail: string = '';
+  private editedContactIsUser: boolean = false;
   phone: string = '';
   avatarColor: string = '#d1d1d1';
   avatarInitials: string = '';
@@ -50,6 +52,10 @@ export class ContactDialog {
   }
 
   onEmailInput(): void {
+    if (this.isUserContact()) {
+      this.email = this.originalEmail;
+      return;
+    }
     this.emailError = '';
     this.submitError = '';
   }
@@ -71,7 +77,7 @@ export class ContactDialog {
         await this.dbService.updateContact(this.editContactId, new ContactsModel({
           id: this.editContactId,
           full_name: this.fullName.trim(),
-          email: this.email.trim(),
+          email: this.getEmailForSave(),
           phone: this.phone.trim(),
           avatar_color: this.avatarColor,
         }));
@@ -125,6 +131,17 @@ export class ContactDialog {
 
   onClose(): void {
     this.closeDialog.emit();
+  }
+
+  isOwnUserContact(): boolean {
+    if (this.mode !== 'edit') return false;
+    const userEmail = this.dbService.user()?.email;
+    if (!userEmail || !this.originalEmail) return false;
+    return ContactsModel.normalizeEmail(userEmail) === ContactsModel.normalizeEmail(this.originalEmail);
+  }
+
+  isUserContact(): boolean {
+    return this.mode === 'edit' && this.editedContactIsUser;
   }
 
   private validateForm(): boolean {
@@ -213,6 +230,8 @@ export class ContactDialog {
     this.editContactId = null;
     this.fullName = '';
     this.email = '';
+    this.originalEmail = '';
+    this.editedContactIsUser = false;
     this.phone = '';
     this.avatarColor = '#d1d1d1';
     this.avatarInitials = '';
@@ -226,6 +245,8 @@ export class ContactDialog {
     this.editContactId = null;
     this.fullName = '';
     this.email = '';
+    this.originalEmail = '';
+    this.editedContactIsUser = false;
     this.phone = '';
     this.avatarColor = '#d1d1d1';
     this.avatarInitials = '';
@@ -244,6 +265,8 @@ export class ContactDialog {
     this.editContactId = contact.id;
     this.fullName = contact.full_name;
     this.email = contact.email;
+    this.originalEmail = contact.email;
+    this.editedContactIsUser = contact.isUser;
     this.phone = contact.phone;
     this.avatarColor = contact.avatar_color || '#d1d1d1';
     this.avatarInitials = contact.getInitials();
@@ -257,5 +280,9 @@ export class ContactDialog {
     const colors = ['#FF7A00', '#9327FF', '#6E52FF', '#FC71FF', '#FFBB2B', '#1FD7C1', '#3BA9E0'];
     const index = Math.floor(Math.random() * colors.length);
     return colors[index];
+  }
+
+  private getEmailForSave(): string {
+    return this.isUserContact() ? this.originalEmail : this.email.trim();
   }
 }

@@ -157,6 +157,11 @@
   height: 32px;
 }
 
+.dialog-form .input-wrapper input.readonly-input {
+  color: $color-text-subtle;
+  cursor: not-allowed;
+}
+
 .phone-icon {
   width: 24px;
   height: 24px;
@@ -399,4 +404,3 @@
     width: min(100%, 332px);
   }
 }
-

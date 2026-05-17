@@ -189,8 +189,8 @@ export class Supabase {
         email, password, options: { data: { full_name: name } },
       });
       if (error) return this.errorMessageHandler(error);
-      if (data.user?.identities?.length === 0) return 'This email is already registered.';
-      if (!data.session) return 'Please confirm your email address.';
+      if (data.user?.identities?.length === 0) return this.errorMessageHandler({ code: 'user_already_exists' });
+      if (!data.session) return this.errorMessageHandler({ code: 'email_not_confirmed' });
       this.user.set(data.user);
       await this.ensureUserContact(name, email);
       this.loadAppData();
@@ -210,6 +210,7 @@ export class Supabase {
     try {
       const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
       if (error) return this.errorMessageHandler(error);
+      if (!data.user) return this.errorMessageHandler({ code: 'invalid_login_credentials' });
       this.user.set(data.user);
       this.loadAppData();
       return null;
@@ -283,10 +284,12 @@ export class Supabase {
    * @: https://supabase.com/docs/guides/auth/debugging/error-codes#auth-error-codes
    */
   private errorMessageHandler(error: any): string {
+    if (error.status === 400) return 'Email or password is incorrect.';
     if (!error.code) return 'Something went wrong.';
     switch (error.code) {
       case 'email_not_confirmed':
         return 'Please confirm your email address.';
+      case 'invalid_credentials':
       case 'invalid_login_credentials':
         return 'Email or password is incorrect.';
       case 'over_request_rate_limit':
@@ -308,7 +311,7 @@ export class Supabase {
    */
   private async ensureUserContact(name: string, email: string): Promise<void> {
     await this.getContacts();
-    const cleanEmail = this.normalizeEmail(email);
+    const cleanEmail = ContactsModel.normalizeEmail(email);
     const exists = this.contactsList().some(contact => contact.getNormalizeEmail() === cleanEmail);
     if (exists) return;
     await this.addContact(new ContactsModel({ full_name: name, email: cleanEmail, phone: '', avatar_color: '#FF4646', isUser: true, }));
@@ -341,18 +344,10 @@ export class Supabase {
    */
   private addContactToState(contact: ContactsModel): void {
     this.contactsList.update((list) => {
-      const email = this.normalizeEmail(contact.email);
-      const exists = list.some(item => item.id === contact.id || this.normalizeEmail(item.email) === email);
+      const email = contact.getNormalizeEmail();
+      const exists = list.some(item => item.id === contact.id || item.getNormalizeEmail() === email);
       return exists ? list : [...list, contact];
     });
-  }
-
-  /**
-   * Normalizes email values before comparing or saving them.
-   * @param email Email value
-   */
-  private normalizeEmail(email: string): string {
-    return email.trim().toLowerCase();
   }
 
   /**

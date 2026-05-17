@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Supabase } from '../../service/supabase';
@@ -14,13 +14,16 @@ export class Login {
   private readonly postAnimationWaitMs = 1000;
   private dbService = inject(Supabase);
   private router = inject(Router);
+  private changeDetector = inject(ChangeDetectorRef);
   private toastTimeoutId: number | null = null;
+  private resetTimeoutId: number | null = null;
 
   email: string = '';
   password: string = '';
   errorMessage: string = '';
   emailError: string = '';
   passwordError: string = '';
+  loginError: boolean = false;
   isLoading: boolean = false;
   passwordFocused = false;
   passwordVisible = false;
@@ -34,13 +37,17 @@ export class Login {
   }
 
   onEmailInput(): void {
+    this.clearResetTimeout();
     this.emailError = '';
     this.errorMessage = '';
+    this.loginError = false;
   }
 
   onPasswordInput(): void {
+    this.clearResetTimeout();
     this.passwordError = '';
     this.errorMessage = '';
+    this.loginError = false;
   }
 
   onPasswordFocus(): void {
@@ -98,7 +105,7 @@ export class Login {
     try {
       const error = await this.dbService.login(this.email.trim(), this.password);
       if (error) {
-        this.errorMessage = error;
+        this.showLoginError(error);
         return;
       }
       this.openToast();
@@ -106,6 +113,7 @@ export class Login {
       this.errorMessage = 'Login failed. Please try again.';
     } finally {
       this.isLoading = false;
+      this.changeDetector.detectChanges();
     }
   }
 
@@ -139,4 +147,27 @@ export class Login {
       this.router.navigate(['/summary', true]);
     }, 1200);
   }
+
+  private showLoginError(error: string): void {
+    this.loginError = true;
+    this.errorMessage = error;
+    this.resetTimeoutId = window.setTimeout(() => this.resetLoginForm(), 2400);
+    this.changeDetector.detectChanges();
+  }
+
+  private resetLoginForm(): void {
+    this.email = '';
+    this.password = '';
+    this.passwordVisible = false;
+    this.loginError = false;
+    this.errorMessage = '';
+    this.changeDetector.detectChanges();
+  }
+
+  private clearResetTimeout(): void {
+    if (this.resetTimeoutId === null) return;
+    window.clearTimeout(this.resetTimeoutId);
+    this.resetTimeoutId = null;
+  }
+
 }

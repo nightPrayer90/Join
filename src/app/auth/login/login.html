@@ -23,7 +23,7 @@
         <div class="headline-separator"></div>
 
         <form class="login-form" novalidate (ngSubmit)="onSubmit()">
-          <div class="input-wrapper" [class.has-error]="emailError">
+          <div class="input-wrapper" [class.has-error]="emailError || loginError">
             <input
               id="email"
               name="email"
@@ -32,14 +32,14 @@
               autocomplete="email"
               [(ngModel)]="email"
               (input)="onEmailInput()"
-              [attr.aria-invalid]="!!emailError">
+              [attr.aria-invalid]="!!emailError || loginError">
             <img src="assets/icons/mail.png" alt="" aria-hidden="true" class="input-icon">
           </div>
           @if (emailError) {
             <p class="field-error">{{ emailError }}</p>
           }
 
-          <div class="input-wrapper" [class.has-error]="passwordError">
+          <div class="input-wrapper" [class.has-error]="passwordError || loginError">
             <input
               id="password"
               name="password"
@@ -50,7 +50,7 @@
               (input)="onPasswordInput()"
               (focus)="onPasswordFocus()"
               (blur)="onPasswordBlur()"
-              [attr.aria-invalid]="!!passwordError">
+              [attr.aria-invalid]="!!passwordError || loginError">
             @if (passwordFocused) {
               <button
                 type="button"
@@ -85,6 +85,11 @@
         </form>
       </article>
     </main>
+
+    <div class="signup-mobile">
+      <span>Not a Join user?</span>
+      <a class="signup-link" routerLink="/signup">Sign up</a>
+    </div>
 
     <footer class="login-footer">
       <a routerLink="/privacy-policy">Privacy Policy</a>

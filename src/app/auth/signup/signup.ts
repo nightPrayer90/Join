@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Supabase } from '../../service/supabase';
@@ -10,8 +10,12 @@ import { Supabase } from '../../service/supabase';
   styleUrl: './signup.scss',
 })
 export class Signup {
+  private readonly confirmEmailMessage = 'Please confirm your email address.';
+  private readonly signupSuccessMessage = 'You Signed Up successfully';
+  private readonly signupConfirmationMessage = 'We sent you an email. Please confirm your email address before logging in.';
   private dbService = inject(Supabase);
   private router = inject(Router);
+  private changeDetector = inject(ChangeDetectorRef);
   private toastTimeoutId: number | null = null;
 
   fullName = '';
@@ -27,6 +31,7 @@ export class Signup {
   passwordVisible = false;
   confirmPasswordVisible = false;
   showToast = signal(false);
+  toastMessage = signal(this.signupSuccessMessage);
 
   get isFormComplete(): boolean {
     return !!this.fullName.trim()
@@ -74,14 +79,15 @@ export class Signup {
     try {
       const error = await this.dbService.signup(this.fullName.trim(), this.email.trim(), this.password);
       if (error) {
-        this.errorMessage = error;
+        this.handleSignupError(error);
         return;
       }
-      this.openToast();
+      this.openToast(this.signupSuccessMessage, '/summary', 1800);
     } catch {
       this.errorMessage = 'Signup failed. Please try again.';
     } finally {
       this.isLoading = false;
+      this.changeDetector.detectChanges();
     }
   }
 
@@ -110,10 +116,6 @@ export class Signup {
     if (!this.submitAttempted) return '';
     if (!this.confirmPassword) return 'Please confirm your password.';
     return this.password === this.confirmPassword ? '' : 'Passwords do not match.';
-  }
-
-  privacyError(): string {
-    return this.submitAttempted && !this.acceptedPrivacy ? 'Please accept the privacy policy.' : '';
   }
 
   private isEmailValid(): boolean {
@@ -163,12 +165,24 @@ export class Signup {
       && dottedTokenRegex.test(secondToken);
   }
 
-  private openToast(): void {
+  private handleSignupError(error: string): void {
+    if (error !== this.confirmEmailMessage) {
+      this.errorMessage = error;
+      this.changeDetector.detectChanges();
+      return;
+    }
+    this.openToast(this.signupConfirmationMessage, '/login', 3200);
+  }
+
+  private openToast(message: string, targetUrl: string, duration: number): void {
     if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
+    this.toastMessage.set(message);
     this.showToast.set(true);
+    this.changeDetector.detectChanges();
     this.toastTimeoutId = window.setTimeout(() => {
       this.showToast.set(false);
-      this.router.navigateByUrl('/summary');
-    }, 1800);
+      this.router.navigateByUrl(targetUrl);
+      this.changeDetector.detectChanges();
+    }, duration);
   }
 }

@@ -44,6 +44,9 @@
               name="email"
               placeholder="Email"
               [(ngModel)]="email"
+              [readonly]="isUserContact()"
+              [attr.aria-readonly]="isUserContact()"
+              [class.readonly-input]="isUserContact()"
               (input)="onEmailInput()">
             <img src="assets/icons/mail.png" alt="" aria-hidden="true" class="input-icon">
           </div>

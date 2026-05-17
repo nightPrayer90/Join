@@ -101,10 +101,6 @@
             </span>
             <span>I accept the <a routerLink="/privacy-policy">Privacy policy</a></span>
           </label>
-          @if (privacyError()) {
-            <p class="field-error privacy-error">{{ privacyError() }}</p>
-          }
-
           @if (errorMessage) {
             <p class="form-error">{{ errorMessage }}</p>
           }
@@ -122,7 +118,7 @@
     </footer>
 
     <div class="signup-toast" [class.show]="showToast()" aria-hidden="true">
-      You Signed Up successfully
+      {{ toastMessage() }}
     </div>
   </div>
 </section>
