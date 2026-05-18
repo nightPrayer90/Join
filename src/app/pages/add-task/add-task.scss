@@ -439,6 +439,12 @@ textarea {
   border: 2px solid #ffffff;
 }
 
+.assigned-ok-btn {
+  display: none;
+  margin: 12px 0 4px auto;
+  height: 56px;
+}
+
 .category-item {
   width: 100%;
   border: none;
@@ -832,7 +838,7 @@ textarea {
   }
 
   .assigned-ok-btn {
-    display: flex !important;
+    display: flex;
   }
 
   .task-toast {
