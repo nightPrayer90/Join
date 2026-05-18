@@ -66,17 +66,20 @@ export class BoardAddTaskDialog implements OnInit {
     return selected;
   });
 
+  /** Initializes the minimum due date and preloads the contacts list. */
   ngOnInit(): void {
     this.minDateISO = TasksModel.todayISO();
     this.dbService.getContacts();
   }
 
+  /** Cancels the discard prompt or attempts to close the dialog on Escape. */
   @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.showConfirmDiscard()) return this.onCancelDiscard();
     this.attemptClose();
   }
 
+  /** Closes the assignee or category dropdowns when clicking outside them. */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -85,10 +88,12 @@ export class BoardAddTaskDialog implements OnInit {
     if (!target.closest('.category-select')) this.categoryOpen = false;
   }
 
+  /** Treats clicks on the overlay like a close request. */
   onOverlayClick(): void {
     this.attemptClose();
   }
 
+  /** Closes the dialog, prompting for discard confirmation when there are unsaved changes. */
   attemptClose(): void {
     if (this.hasUnsavedChanges()) {
       this.showConfirmDiscard.set(true);
@@ -97,19 +102,23 @@ export class BoardAddTaskDialog implements OnInit {
     this.closed.emit();
   }
 
+  /** Confirms discarding the changes and closes the dialog. */
   onConfirmDiscard(): void {
     this.showConfirmDiscard.set(false);
     this.closed.emit();
   }
 
+  /** Hides the discard prompt so the user can keep editing. */
   onCancelDiscard(): void {
     this.showConfirmDiscard.set(false);
   }
 
+  /** Returns true when the form contains any unsaved input. */
   hasUnsavedChanges(): boolean {
     return this.hasTextInput() || this.hasFieldChange() || this.hasCollectionChange();
   }
 
+  /** Returns true if any text input field currently holds non-whitespace content. */
   private hasTextInput(): boolean {
     return !!this.title.trim()
       || !!this.description.trim()
@@ -117,14 +126,17 @@ export class BoardAddTaskDialog implements OnInit {
       || !!this.subtaskInput.trim();
   }
 
+  /** Returns true when the priority or category has been changed from the defaults. */
   private hasFieldChange(): boolean {
     return this.priority !== 2 || this.categoryId !== null;
   }
 
+  /** Returns true when at least one member is selected or a subtask has been added. */
   private hasCollectionChange(): boolean {
     return this.selectedMemberIds().length > 0 || this.subtasks.length > 0;
   }
 
+  /** Closes the dropdowns when clicking inside the panel but outside the dropdowns. */
   onPanelClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.assigned-select')) this.assignedOpen = false;
@@ -132,26 +144,31 @@ export class BoardAddTaskDialog implements OnInit {
     event.stopPropagation();
   }
 
+  /** Sets the task priority. */
   setPriority(p: PriorityKey): void {
     this.priority = p;
   }
 
+  /** Toggles the assignee dropdown open or closed and closes the category dropdown. */
   toggleAssigned(event: MouseEvent): void {
     event.stopPropagation();
     this.assignedOpen = !this.assignedOpen;
     this.categoryOpen = false;
   }
 
+  /** Toggles the category dropdown open or closed and closes the assignee dropdown. */
   toggleCategory(event: MouseEvent): void {
     event.stopPropagation();
     this.categoryOpen = !this.categoryOpen;
     this.assignedOpen = false;
   }
 
+  /** Returns true if the given contact id is currently selected. */
   isMemberSelected(id: number): boolean {
     return this.selectedMemberIds().includes(id);
   }
 
+  /** Adds or removes a contact from the selected members list. */
   toggleMember(id: number): void {
     const cur = this.selectedMemberIds();
     if (cur.includes(id)) {
@@ -161,16 +178,19 @@ export class BoardAddTaskDialog implements OnInit {
     }
   }
 
+  /** Stores the chosen category and closes the dropdown. */
   selectCategory(cat: CategoryModel): void {
   this.categoryId = cat.id;
   this.categoryOpen = false;
 }
 
 
+  /** Returns the label of the currently selected category or an empty string. */
   categoryLabel(): string {
   return CategoryModel.findById(this.categoryId)?.name ?? '';
 }
 
+  /** Appends the current subtask input as a new subtask in the form. */
   addSubtask(): void {
     const t = this.subtaskInput.trim();
     if (!t) return;
@@ -178,23 +198,28 @@ export class BoardAddTaskDialog implements OnInit {
     this.subtaskInput = '';
   }
 
+  /** Removes a subtask from the form by its id. */
   removeSubtask(id: number): void {
     this.subtasks = this.subtasks.filter(s => s.id !== id);
   }
 
+  /** Handles the Enter key inside the subtask input field. */
   onSubtaskEnter(event: Event): void {
     event.preventDefault();
     this.addSubtask();
   }
 
+  /** Returns true if the subtask input currently contains non-whitespace text. */
   hasSubtaskInput(): boolean {
     return !!this.subtaskInput.trim();
   }
 
+  /** Clears the subtask input field. */
   clearSubtaskInput(): void {
     this.subtaskInput = '';
   }
 
+  /** Formats typed digits into "dd/mm/yyyy" while the user is typing. */
   onDueDateInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/\D/g, '').slice(0, 8);
@@ -206,6 +231,7 @@ export class BoardAddTaskDialog implements OnInit {
     input.value = this.dueDateText;
   }
 
+  /** Opens the native date picker for the due-date field. */
   openDatePicker(dateInput: HTMLInputElement): void {
     if (typeof dateInput.showPicker === 'function') {
       dateInput.showPicker();
@@ -214,6 +240,7 @@ export class BoardAddTaskDialog implements OnInit {
     dateInput.click();
   }
 
+  /** Reacts to a native date picker selection and converts the value into the visible format. */
   onDatePickerChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = input.value;
@@ -224,10 +251,12 @@ export class BoardAddTaskDialog implements OnInit {
     this.dueDateTouched = true;
   }
 
+  /** Marks the due-date field as touched so validation errors may appear. */
   onDueDateBlur(): void {
     this.dueDateTouched = true;
   }
 
+  /** Returns true if the given form field should currently be displayed as invalid. */
   isFieldInvalid(field: 'title' | 'date' | 'category'): boolean {
     if (!this.submitted) return false;
     if (field === 'title') return !this.title.trim();
@@ -235,19 +264,25 @@ export class BoardAddTaskDialog implements OnInit {
     return this.isDueDateInvalid();
   }
 
+  /** Indicates whether the due-date error message should currently be displayed. */
   showDateError(): boolean {
     if (!this.submitted && !this.dueDateTouched) return false;
     return this.isDueDateInvalid();
   }
 
+  /** Validates the form and creates the new task in the database. */
   async createTask(): Promise<void> {
     this.submitted = true;
     this.saveError = '';
     if (!this.isFormValid()) return;
     const dueDate = this.parseDueDate(this.dueDateText);
     if (!dueDate) return;
+    const task = this.buildTaskPayload(dueDate);
+    await this.persistNewTask(task);
+  }
 
-    this.isSaving.set(true);
+  /** Builds a TasksModel instance from the current form state. */
+  private buildTaskPayload(dueDate: Date): TasksModel {
     const task = new TasksModel();
     task.title = this.title.trim();
     task.description = this.description.trim();
@@ -258,7 +293,12 @@ export class BoardAddTaskDialog implements OnInit {
     task.task_status = this.presetStatus;
     task.sort_order = 0;
     task.date = dueDate;
+    return task;
+  }
 
+  /** Saves the new task to the database and emits the appropriate events. */
+  private async persistNewTask(task: TasksModel): Promise<void> {
+    this.isSaving.set(true);
     const id = await this.dbService.addTask(task);
     this.isSaving.set(false);
     if (id === null) {
@@ -269,10 +309,12 @@ export class BoardAddTaskDialog implements OnInit {
     this.closed.emit();
   }
 
+  /** Returns true when all required fields are filled and the due date is valid. */
   private isFormValid(): boolean {
     return !!this.title.trim() && this.categoryId !== null && !this.isDueDateInvalid();
   }
 
+  /** Returns true if the entered due date is missing or in the past. */
   private isDueDateInvalid(): boolean {
     const d = this.parseDueDate(this.dueDateText);
     if (!d) return true;
@@ -281,6 +323,7 @@ export class BoardAddTaskDialog implements OnInit {
     return d < today;
   }
 
+  /** Parses a "dd/mm/yyyy" formatted string into a Date or returns null on invalid input. */
   private parseDueDate(value: string): Date | null {
     const n = value.trim();
     if (!n) return null;
@@ -293,6 +336,7 @@ export class BoardAddTaskDialog implements OnInit {
     return d;
   }
 
+  /** Returns the next available subtask id based on the highest existing id. */
   private nextSubtaskId(): number {
     let max = 0;
     for (let i = 0; i < this.subtasks.length; i++) {

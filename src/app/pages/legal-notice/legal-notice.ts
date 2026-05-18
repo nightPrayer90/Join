@@ -11,6 +11,7 @@ import { Location } from '@angular/common';
 export class LegalNotice {
   private location = inject(Location);
 
+  /** Navigates back to the previously visited page. */
   goBack(): void {
     this.location.back();
   }

@@ -21,6 +21,7 @@ export class TasksModel {
   task_status: string;
   sort_order: number;
 
+  /** Builds a TasksModel from a partial database record, applying defaults for missing fields. */
   constructor(data: Partial<Tasks> = {}) {
     this.id = data.id ?? -1;
     this.title = data.title ?? 'n/a';

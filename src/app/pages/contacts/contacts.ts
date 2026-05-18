@@ -31,29 +31,31 @@ export class Contacts {
    * Also sorts contacts by their full name using German locale rules.
    */
   contactsByLetter = computed<GroupedContacts[]>(() => {
-    const sortedContacts = [...this.dbService.contactsList()]
-      .map((c) => new ContactsModel(c))
-      .sort((a, b) => {
-        const fullNameA = this.fullNameFrom(a);
-        const fullNameB = this.fullNameFrom(b);
-        return fullNameA.localeCompare(fullNameB, 'de', { sensitivity: 'base' });
-      });
-
-    const grouped = new Map<string, ContactsModel[]>();
-
-    for (const contact of sortedContacts) {
-      const fullName = this.fullNameFrom(contact);
-      const firstLetter = (fullName.charAt(0) || '#').toUpperCase();
-
-      if (!grouped.has(firstLetter)) {
-        grouped.set(firstLetter, []);
-      }
-
-      grouped.get(firstLetter)?.push(contact);
-    }
-
-    return Array.from(grouped.entries()).map(([letter, contacts]) => ({ letter, contacts }));
+    const sorted = this.sortContactsAlphabetically(this.dbService.contactsList());
+    return this.groupContactsByLetter(sorted);
   });
+
+  /**
+   * Returns a sorted clone of the contact list using German locale rules.
+   */
+  private sortContactsAlphabetically(list: ContactsModel[]): ContactsModel[] {
+    return [...list]
+      .map((c) => new ContactsModel(c))
+      .sort((a, b) => this.fullNameFrom(a).localeCompare(this.fullNameFrom(b), 'de', { sensitivity: 'base' }));
+  }
+
+  /**
+   * Groups already-sorted contacts by their first letter (uppercase, '#' for empty).
+   */
+  private groupContactsByLetter(sorted: ContactsModel[]): GroupedContacts[] {
+    const grouped = new Map<string, ContactsModel[]>();
+    for (const contact of sorted) {
+      const letter = (this.fullNameFrom(contact).charAt(0) || '#').toUpperCase();
+      if (!grouped.has(letter)) grouped.set(letter, []);
+      grouped.get(letter)?.push(contact);
+    }
+    return Array.from(grouped.entries()).map(([letter, contacts]) => ({ letter, contacts }));
+  }
 
   /**
    * Returns the trimmed full name of a contact.

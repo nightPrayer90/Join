@@ -30,12 +30,14 @@ export class Login {
   showSplash = signal(true);
   showToast = signal(false);
 
+  /** Schedules the splash screen to hide after the animation has finished. */
   constructor() {
     window.setTimeout(() => {
       this.showSplash.set(false);
     }, this.splashDurationMs + this.postAnimationWaitMs);
   }
 
+  /** Resets validation state while the user is typing into the email field. */
   onEmailInput(): void {
     this.clearResetTimeout();
     this.emailError = '';
@@ -43,6 +45,7 @@ export class Login {
     this.loginError = false;
   }
 
+  /** Resets validation state while the user is typing into the password field. */
   onPasswordInput(): void {
     this.clearResetTimeout();
     this.passwordError = '';
@@ -50,19 +53,23 @@ export class Login {
     this.loginError = false;
   }
 
+  /** Marks the password field as focused so the visibility toggle becomes available. */
   onPasswordFocus(): void {
     this.passwordFocused = true;
   }
 
+  /** Marks the password field as unfocused and hides the password text. */
   onPasswordBlur(): void {
     this.passwordFocused = false;
     this.passwordVisible = false;
   }
 
+  /** Toggles plain-text visibility of the password input. */
   togglePasswordVisibility(): void {
     this.passwordVisible = !this.passwordVisible;
   }
 
+  /** Validates the email field and sets an error message when invalid. */
   private validateEmail(): boolean {
     const value = this.email.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,6 +78,7 @@ export class Login {
     return true;
   }
 
+  /** Validates the password field and sets an error message when invalid. */
   private validatePassword(): boolean {
     const value = this.password.trim();
     if (!value) return this.setPasswordError('Please enter your password.');
@@ -78,6 +86,7 @@ export class Login {
     return true;
   }
 
+  /** Runs all field validators and returns true only if every check passes. */
   private validateForm(): boolean {
     this.emailError = '';
     this.passwordError = '';
@@ -86,16 +95,19 @@ export class Login {
     return isEmailValid && isPasswordValid;
   }
 
+  /** Stores an error message for the email field and returns false. */
   private setEmailError(message: string): false {
     this.emailError = message;
     return false;
   }
 
+  /** Stores an error message for the password field and returns false. */
   private setPasswordError(message: string): false {
     this.passwordError = message;
     return false;
   }
 
+  /** Handles the login submit, validates input and authenticates the user. */
   async onSubmit(): Promise<void> {
     if (this.isLoading) return;
     this.errorMessage = '';
@@ -117,6 +129,7 @@ export class Login {
     }
   }
 
+  /** Signs the user in as an anonymous guest and shows the success toast. */
   async onGuestLogin(): Promise<void> {
     if (this.isLoading) return;
     this.errorMessage = '';
@@ -135,10 +148,12 @@ export class Login {
     }
   }
 
+  /** Returns true if a user is currently authenticated. */
   isLoggedIn(): boolean {
     return this.dbService.isLoggedIn();
   }
 
+  /** Displays the success toast and navigates to the summary after a short delay. */
   private openToast(): void {
     if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
     this.showToast.set(true);
@@ -148,6 +163,7 @@ export class Login {
     }, 1200);
   }
 
+  /** Shows an error message and schedules the form to reset after a delay. */
   private showLoginError(error: string): void {
     this.loginError = true;
     this.errorMessage = error;
@@ -155,6 +171,7 @@ export class Login {
     this.changeDetector.detectChanges();
   }
 
+  /** Clears the login form fields and removes any visible error state. */
   private resetLoginForm(): void {
     this.email = '';
     this.password = '';
@@ -164,6 +181,7 @@ export class Login {
     this.changeDetector.detectChanges();
   }
 
+  /** Cancels the pending login-form reset timeout if one is active. */
   private clearResetTimeout(): void {
     if (this.resetTimeoutId === null) return;
     window.clearTimeout(this.resetTimeoutId);

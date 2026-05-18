@@ -68,6 +68,7 @@ export class Board implements OnDestroy {
     );
   });
 
+  /** Clears any pending toast timeout when the component is destroyed. */
   ngOnDestroy(): void {
     if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
   }
@@ -219,69 +220,77 @@ export class Board implements OnDestroy {
   }): void {
     const task = this.findTaskModel(payload.id);
     if (!task) return;
+    this.applyTaskPayload(task, payload);
+    this.refreshAndPersist(task);
+    this.refreshSelectedTask(payload.id);
+    this.openToast('Task updated');
+  }
+
+  /** Writes the inline-edit payload into the TasksModel fields. */
+  private applyTaskPayload(
+    task: TasksModel,
+    payload: { title: string; description: string; priority: BoardPriority; dueDate: string; memberIds: number[]; subtasks: BoardSubtask[] },
+  ): void {
     task.title = payload.title;
     task.description = payload.description;
     task.priority = this.reversePriority(payload.priority);
     task.date = TasksModel.parseDate(payload.dueDate) ?? new Date();
     task.member = [...payload.memberIds];
     task.subtasks = payload.subtasks.map((s) => ({ id: s.id, title: s.title, done: s.done }));
-    this.refreshAndPersist(task);
-    this.refreshSelectedTask(payload.id);
-    this.openToast('Task updated');
   }
 
   /** Moves a task to a target column at a specific index, reorders, and persists all changes. */
   private persistDrop(id: number, boardColumn: BoardStatus, insertIndex: number): void {
-  const allTasks = this.dbService.tasksList();
-  const moved = allTasks.find((t) => t.id === id);
-  if (!moved) return;
-
-  const previousStatus = moved.task_status;
-  const index = this.findInsertIndex(moved, boardColumn, insertIndex, allTasks);
-  moved.task_status = boardColumn;
-
-  const column = this.setNewColumnOrder(moved, boardColumn, index, allTasks);
-
-  for (let i = 0; i < column.length; i++) {
-    column[i].sort_order = i;
-    this.dbService.updateTask(column[i]);
+    const allTasks = this.dbService.tasksList();
+    const moved = allTasks.find((t) => t.id === id);
+    if (!moved) return;
+    const previousStatus = moved.task_status;
+    const index = this.findInsertIndex(moved, boardColumn, insertIndex, allTasks);
+    moved.task_status = boardColumn;
+    const column = this.setNewColumnOrder(moved, boardColumn, index, allTasks);
+    this.reorderColumn(column);
+    this.dbService.tasksList.update((list) => [...list]);
+    if (previousStatus !== boardColumn) this.openToast('Task moved');
   }
-  this.dbService.tasksList.update((list) => [...list]);
-  if (previousStatus !== boardColumn) this.openToast('Task moved');
-}
 
-private openToast(message: string, icon = '✓'): void {
-  if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
-  this.toastMessage.set(message);
-  this.toastIcon.set(icon);
-  this.showToast.set(true);
-  this.toastTimeoutId = window.setTimeout(() => {
-    this.showToast.set(false);
-    this.toastTimeoutId = null;
-  }, 2500);
-}
+  /** Persists the new sort order for every task in a column. */
+  private reorderColumn(column: TasksModel[]): void {
+    for (let i = 0; i < column.length; i++) {
+      column[i].sort_order = i;
+      this.dbService.updateTask(column[i]);
+    }
+  }
 
-/** Adjusts the visual insert index for same-column moves where the dragged card shifts positions. */
-private findInsertIndex(moved: TasksModel, boardColumn: BoardStatus, insertIndex: number, tasks: TasksModel[]): number {
-  if (moved.task_status !== boardColumn) return insertIndex;
+  /** Shows a toast message with an icon and hides it again after a short delay. */
+  private openToast(message: string, icon = '✓'): void {
+    if (this.toastTimeoutId !== null) window.clearTimeout(this.toastTimeoutId);
+    this.toastMessage.set(message);
+    this.toastIcon.set(icon);
+    this.showToast.set(true);
+    this.toastTimeoutId = window.setTimeout(() => {
+      this.showToast.set(false);
+      this.toastTimeoutId = null;
+    }, 2500);
+  }
 
-  const oldIndex = tasks
-  .filter((task) => task.task_status === boardColumn)
-  .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0))
-  .findIndex((task) => task.id === moved.id);
+  /** Adjusts the visual insert index for same-column moves where the dragged card shifts positions. */
+  private findInsertIndex(moved: TasksModel, boardColumn: BoardStatus, insertIndex: number, tasks: TasksModel[]): number {
+    if (moved.task_status !== boardColumn) return insertIndex;
+    const oldIndex = tasks
+      .filter((task) => task.task_status === boardColumn)
+      .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0))
+      .findIndex((task) => task.id === moved.id);
+    return oldIndex !== -1 && insertIndex > oldIndex ? insertIndex - 1 : insertIndex;
+  }
 
-  return oldIndex !== -1 && insertIndex > oldIndex ? insertIndex - 1 : insertIndex;
-}
-
-/** Builds the new card order for a column by inserting the moved task at the target index. */
-private setNewColumnOrder(moved: TasksModel, boardColumn: BoardStatus, insertIndex: number, tasks: TasksModel[]): TasksModel[] {
-  const column = tasks
-    .filter((task) => task.task_status === boardColumn && task.id !== moved.id)
-    .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0));
-
-  column.splice(insertIndex, 0, moved);
-  return column;
-}
+  /** Builds the new card order for a column by inserting the moved task at the target index. */
+  private setNewColumnOrder(moved: TasksModel, boardColumn: BoardStatus, insertIndex: number, tasks: TasksModel[]): TasksModel[] {
+    const column = tasks
+      .filter((task) => task.task_status === boardColumn && task.id !== moved.id)
+      .sort((first, second) => (first.sort_order ?? 0) - (second.sort_order ?? 0));
+    column.splice(insertIndex, 0, moved);
+    return column;
+  }
 
   /**
    * Converts a database TasksModel into a UI-ready BoardTask.

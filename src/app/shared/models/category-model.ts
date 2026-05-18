@@ -11,6 +11,7 @@ export class CategoryModel implements Category {
     new CategoryModel({ id: 2, name: 'User Story', color: '#0038FF' }),
   ];
 
+  /** Builds a CategoryModel from a partial category record, applying defaults for missing fields. */
   constructor(data: Partial<Category> = {}) {
     this.id = data.id ?? -1;
     this.name = data.name ?? 'n/a';

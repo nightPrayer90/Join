@@ -38,6 +38,7 @@ export class Supabase {
     return list.find(t => t.id === id) ?? null;
   });
 
+  /** Initializes the auth listener and all realtime subscriptions for contacts and tasks. */
   constructor() {
     this.initAuthListener();
     this.subscribeContacsInsert();
@@ -48,6 +49,7 @@ export class Supabase {
     this.subscribeTaskDelete();
   }
 
+  /** Removes all active realtime channel subscriptions when the service is destroyed. */
   ngOnDestroy() {
     if (this.channelInsert) this.supabase.removeChannel(this.channelInsert);
     if (this.channelUpdate) this.supabase.removeChannel(this.channelUpdate);
@@ -157,20 +159,31 @@ export class Supabase {
   /** Registers a new user and creates the matching user contact. */
   async signup(name: string, email: string, password: string): Promise<string | null> {
     try {
-      const { data, error } = await this.supabase.auth.signUp({
-        email, password, options: { data: { full_name: name } },
-      });
-      if (error) return this.errorMessageHandler(error);
-      // TODO: -> Hast du das hier mal getestet? also ob du da überhaut mit hin kommst?
-      if (data.user?.identities?.length === 0) return this.errorMessageHandler({ code: 'user_already_exists' });
-      if (!data.session) return this.errorMessageHandler({ code: 'email_not_confirmed' });
-      this.user.set(data.user);
-      await this.ensureUserContact(name, email);
-      this.loadAppData();
+      const validationError = await this.createAuthUser(name, email, password);
+      if (validationError) return validationError;
+      await this.finalizeSignup(name, email);
       return null;
     } catch (error) {
       return this.errorMessageHandler(error);
     }
+  }
+
+  /** Performs the Supabase sign-up call and returns an error message if it failed. */
+  private async createAuthUser(name: string, email: string, password: string): Promise<string | null> {
+    const { data, error } = await this.supabase.auth.signUp({
+      email, password, options: { data: { full_name: name } },
+    });
+    if (error) return this.errorMessageHandler(error);
+    if (data.user?.identities?.length === 0) return this.errorMessageHandler({ code: 'user_already_exists' });
+    if (!data.session) return this.errorMessageHandler({ code: 'email_not_confirmed' });
+    this.user.set(data.user);
+    return null;
+  }
+
+  /** Creates the matching user contact and loads initial application data. */
+  private async finalizeSignup(name: string, email: string): Promise<void> {
+    await this.ensureUserContact(name, email);
+    this.loadAppData();
   }
 
   /** Logs in a user using email and password. */
@@ -233,29 +246,24 @@ export class Supabase {
     return this.user() !== null;
   }
 
+  private static readonly AUTH_ERROR_MESSAGES: Record<string, string> = {
+    email_not_confirmed: 'Please confirm your email address.',
+    invalid_credentials: 'Email or password is incorrect.',
+    invalid_login_credentials: 'Email or password is incorrect.',
+    over_request_rate_limit: 'Too many attempts. Please try again later.',
+    anonymous_provider_disabled: 'Guest login is not enabled in Supabase.',
+    email_exists: 'This email is already registered.',
+    user_already_exists: 'This email is already registered.',
+  };
+
   /**
    * Maps Supabase auth errors to user-friendly messages.
    * @: https://supabase.com/docs/guides/auth/debugging/error-codes#auth-error-codes
    */
   private errorMessageHandler(error: any): string {
-    if (error.status === 400) return 'Email or password is incorrect.';
-    if (!error.code) return 'Something went wrong.';
-    switch (error.code) {
-      case 'email_not_confirmed':
-        return 'Please confirm your email address.';
-      case 'invalid_credentials':
-      case 'invalid_login_credentials':
-        return 'Email or password is incorrect.';
-      case 'over_request_rate_limit':
-        return 'Too many attempts. Please try again later.';
-      case 'anonymous_provider_disabled':
-        return 'Guest login is not enabled in Supabase.';
-      case 'email_exists':
-      case 'user_already_exists':
-        return 'This email is already registered.';
-      default:
-        return 'Something went wrong. Please try again.';
-    }
+    if (error?.status === 400) return 'Email or password is incorrect.';
+    if (!error?.code) return 'Something went wrong.';
+    return Supabase.AUTH_ERROR_MESSAGES[error.code] ?? 'Something went wrong. Please try again.';
   }
 
   /** Creates the current user contact if no contact with the same email exists. */

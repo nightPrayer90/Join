@@ -17,21 +17,25 @@ export class Header {
   readonly isMenuOpen = signal(false);
   readonly avatarLabel = computed(() => this.getAvatarLabel());
 
+  /** Toggles the user menu dropdown open or closed. */
   toggleMenu(event: MouseEvent): void {
     event.stopPropagation();
     this.isMenuOpen.update(value => !value);
   }
 
+  /** Closes the user menu dropdown. */
   closeMenu(): void {
     this.isMenuOpen.set(false);
   }
 
+  /** Logs out the current user and navigates back to the login screen. */
   async logout(): Promise<void> {
     this.closeMenu();
     await this.dbService.logout();
     await this.router.navigateByUrl('/login');
   }
 
+  /** Closes the menu when clicking outside the header element. */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.host.nativeElement.contains(event.target as Node)) {
@@ -39,11 +43,13 @@ export class Header {
     }
   }
 
+  /** Closes the menu when the Escape key is pressed. */
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.closeMenu();
   }
 
+  /** Computes the avatar label shown for the current user or guest. */
   private getAvatarLabel(): string {
     const user = this.dbService.user();
     if (!user) return 'G';
@@ -53,6 +59,7 @@ export class Header {
     return contact?.getInitials() ?? this.getEmailInitial(email);
   }
 
+  /** Returns the uppercased first letter of the email as fallback initial. */
   private getEmailInitial(email: string): string {
     return email.charAt(0).toUpperCase() || 'U';
   }

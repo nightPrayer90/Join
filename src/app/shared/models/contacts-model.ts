@@ -12,6 +12,7 @@ export class ContactsModel implements Contact {
   avatar_color: string;
   isUser: boolean;
 
+  /** Builds a ContactsModel from a partial database record, applying defaults for missing fields. */
   constructor(data: Partial<Contact> = {}) {
     this.id = data.id ?? -1;
     this.full_name = data.full_name ?? 'n/a';

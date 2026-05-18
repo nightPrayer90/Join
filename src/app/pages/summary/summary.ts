@@ -28,6 +28,7 @@ export class Summary {
   userString = computed<string>(() => this.getUserName());
   timeString = computed<string>(() => this.getTimeString());
 
+  /** Initializes greeting data and triggers the welcome-screen animation when applicable. */
   constructor() {
     this.getUserName();
     this.getTimeString();
