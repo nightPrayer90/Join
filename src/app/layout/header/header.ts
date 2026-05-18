@@ -12,7 +12,7 @@ import { computed } from '@angular/core';
 })
 export class Header {
   private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly dbService = inject(Supabase);
+  readonly dbService = inject(Supabase);
   private readonly router = inject(Router);
   readonly isMenuOpen = signal(false);
   readonly avatarLabel = computed(() => this.getAvatarLabel());
