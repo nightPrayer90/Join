@@ -18,9 +18,7 @@ export class Supabase {
   channelTaskInsert: RealtimeChannel | undefined;
   channelTaskUpdate: RealtimeChannel | undefined;
   channelTaskDelete: RealtimeChannel | undefined;
-
   user = signal<User | null>(null);   // Holds the currently authenticated user from the database.
-
   contactsList = signal<ContactsModel[]>([]);               // Reactive list of all contacts loaded from the "contacts" database table.
   contactDetailsId = signal<number | null>(null);           // Stores the id of the contact used to control the detail view selection.
   contactDetails = computed<ContactsModel | null>(() => {   // Computed signal that returns the selected contact based on contactDetailsId. -  null if not found
@@ -36,7 +34,6 @@ export class Supabase {
   taskDetails = computed<TasksModel | null>(() => {     // Computed signal that returns the selected contact based on contactDetailsId. -  null if not found
     const id = this.taskDetailsId();
     if (id === null) return null;
-
     const list = this.tasksList();
     return list.find(t => t.id === id) ?? null;
   });
@@ -72,35 +69,27 @@ export class Supabase {
         return;
       }
       this.user.set(session.user);
-      if (event !== 'SIGNED_IN') {
+      if (event !== 'SIGNED_IN') 
         window.setTimeout(() => this.loadAppData(), 0);
-      }
     });
   }
 
-  /**
-   * Handles initialization - task and contact data.
-   */
+  /**Handles initialization - task and contact data. */
   private loadAppData(): void {
     this.getContacts();
     this.getTasks();
   }
 
-  /**
-   * Subscribes to INSERT events - Adds new contacts to the local contacts list.
-   */
+  /** Subscribes to INSERT events - Adds new contacts to the local contacts list. */
   private subscribeContacsInsert(): void {
     this.channelInsert = this.supabase
       .channel('contacts-insert')
       .on( 'postgres_changes', { event: 'INSERT', schema: 'public', table: 'contacts' },
-        (payload) => { this.addContactToState(new ContactsModel(payload.new as Contact)); },
-      )
+        (payload) => { this.addContactToState(new ContactsModel(payload.new as Contact)); })
       .subscribe();
   }
 
-  /**
-   * Subscribes to DELETE events - Removes the deleted contact from the local contacts list.
-   */
+  /** Subscribes to DELETE events - Removes the deleted contact from the local contacts list. */
   private subscribeContacsUpdate(): void {
     this.channelUpdate = this.supabase
       .channel('contacts-update')
@@ -111,14 +100,11 @@ export class Supabase {
           return list.map((contact) => 
           contact.id === updated.id ? new ContactsModel(updated) : contact);
         });
-      },
-    )
+      })
     .subscribe();
 }
 
-  /**
-   * Subscribes to DELETE events - Removes the deleted contact from the local contacts list using its id.
-   */
+  /** Subscribes to DELETE events - Removes the deleted contact from the local contacts list using its id. */
   private subscribeContacsDelete():void {
     this.channelDelete = this.supabase
       .channel('contacts-delete')
@@ -126,26 +112,20 @@ export class Supabase {
         (payload) => { 
           const deleteId = payload.old['id'];
           this.contactsList.update((list) => list.filter((contact) => contact.id !== deleteId));
-        },
-      )
+        })
       .subscribe();
   }
 
-  /**
-   * Subscribes to INSERT events - Adds new tasks to the local tasks list.
-   */
+  /** Subscribes to INSERT events - Adds new tasks to the local tasks list. */
   private subscribeTaskInsert(): void {
     this.channelInsert = this.supabase
       .channel('tasks-insert')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, 
-        (payload) => { this.tasksList.update((list) => [...list, new TasksModel(payload.new as Tasks)]); }
-      )
+        (payload) => { this.tasksList.update((list) => [...list, new TasksModel(payload.new as Tasks)]);})
       .subscribe();
   }
 
-  /**
-   * Subscribes to INSERT events - Adds new tasks to the local tasks list.
-   */
+  /** Subscribes to INSERT events - Adds new tasks to the local tasks list. */
   private subscribeTaskUpdate(): void {
     this.channelUpdate = this.supabase
       .channel('tasks-update')
@@ -156,14 +136,11 @@ export class Supabase {
           return list.map((task) => 
           task.id === updated.id ? new TasksModel(updated) : task);
         });
-      },
-    )
+      })
     .subscribe();
   }
 
-  /**
-   * Subscribes to DELETE events - Removes the deleted task from the local tasks list.
-   */
+  /** Subscribes to DELETE events - Removes the deleted task from the local tasks list. */
   private subscribeTaskDelete(): void {
     this.channelDelete = this.supabase
       .channel('tasks-delete')
@@ -177,18 +154,14 @@ export class Supabase {
   //#endregion
 
   //#region USER AUTH -----------------------------------------------------------------------------
-  /**
-   * Registers a new user and creates the matching user contact.
-   * @param name User full name
-   * @param email User email address
-   * @param password User password
-   */
+  /** Registers a new user and creates the matching user contact. */
   async signup(name: string, email: string, password: string): Promise<string | null> {
     try {
       const { data, error } = await this.supabase.auth.signUp({
         email, password, options: { data: { full_name: name } },
       });
       if (error) return this.errorMessageHandler(error);
+      // TODO: -> Hast du das hier mal getestet? also ob du da überhaut mit hin kommst?
       if (data.user?.identities?.length === 0) return this.errorMessageHandler({ code: 'user_already_exists' });
       if (!data.session) return this.errorMessageHandler({ code: 'email_not_confirmed' });
       this.user.set(data.user);
@@ -200,12 +173,7 @@ export class Supabase {
     }
   }
 
-  /**
-   * Logs in a user using email and password.
-   * @param email User email address
-   * @param password User password
-   * @returns Promise<string | null> Returns error message or null if successful
-   */
+  /** Logs in a user using email and password. */
   async login(email: string, password: string): Promise<string | null> {
     try {
       const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
@@ -219,10 +187,7 @@ export class Supabase {
     }
   }
 
-  /**
-   * Logs in with a real Supabase anonymous guest user.
-   * @returns Promise<string | null> Error message or null if successful
-   */
+  /** Logs in with a real Supabase anonymous guest user. */
   async loginAsGuest(): Promise<string | null> {
     try {
       const { data, error } = await this.supabase.auth.signInAnonymously();
@@ -235,27 +200,20 @@ export class Supabase {
     }
   }
 
-  /**
-   * Logs out the current user and clears all local state.
-   */
+  /** Logs out the current user and clears all local state. */
   async logout(): Promise<void> {
     await this.supabase.auth.signOut();
     this.clearAuthState();
   }
 
-  /**
-   * Clears the current auth-related local state.
-   */
+  /** Clears the current auth-related local state. */
   private clearAuthState(): void {
     this.user.set(null);
     this.contactsList.set([]);
     this.tasksList.set([]);
   }
 
-  /**
-   * Restores an existing Supabase session for route guards and page reloads.
-   * @returns True when a logged-in or anonymous Supabase user exists
-   */
+  /** Restores an existing Supabase session for route guards and page reloads. */
   async hasActiveSession(): Promise<boolean> {
     try {
       if (this.user()) return true;
@@ -270,11 +228,7 @@ export class Supabase {
     }
   }
 
-  /**
-   * Returns true if a user is currently authenticated.
-   * >> we can use !!!: @if (dbService.user()) in html
-   * @returns boolean True if user is logged in, otherwise false (guest user)
-   */
+  /** Returns true if a user is currently authenticated. */
   isLoggedIn(): boolean {
     return this.user() !== null;
   }
@@ -304,11 +258,7 @@ export class Supabase {
     }
   }
 
-  /**
-   * Creates the current user contact if no contact with the same email exists.
-   * @param name User full name
-   * @param email User email
-   */
+  /** Creates the current user contact if no contact with the same email exists. */
   private async ensureUserContact(name: string, email: string): Promise<void> {
     await this.getContacts();
     const cleanEmail = ContactsModel.normalizeEmail(email);
@@ -319,9 +269,7 @@ export class Supabase {
   //#endregion ------------------------------------------------------------------------------------
   
   //#region CONTACT DATA -------------------------------------------------------------------------
-  /**
-   * Fetches all contacts from the database and updates the local contacts list.
-   */
+  /** Fetches all contacts from the database and updates the local contacts list. */
   async getContacts(): Promise<void> {
     const contactModels: ContactsModel[] = [];
     const { data, error } = (await this.supabase.from('contacts').select('*')) as {
@@ -330,18 +278,14 @@ export class Supabase {
     };
     if (error || data === null) {
       console.log('Contacts could not be loaded!');
-      return; // TODO: Errorhandling
+      return; 
     }
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) 
       contactModels.push(new ContactsModel(data[i]));
-    }
     this.contactsList.set(contactModels);
   }
 
-  /**
-   * Adds a contact to local state only if it is not already present.
-   * @param contact Contact model from realtime insert
-   */
+  /** Adds a contact to local state only if it is not already present. */
   private addContactToState(contact: ContactsModel): void {
     this.contactsList.update((list) => {
       const email = contact.getNormalizeEmail();
@@ -350,50 +294,34 @@ export class Supabase {
     });
   }
 
-  /**
-   * Sets the current contact id for the detail view.
-   * Triggers reactive updates based on the selected contact.
-   * @param id - The id of the contact to display
-   */
+  /** Sets the current contact id for the detail view. Triggers reactive updates based on the selected contact. */
   getContactDetails(id: number | null): void {
     this.contactDetailsId.set(id);
   }
 
-  /**
-   * Inserts a new contact into the database.
-   * @param contact - The contact model to be added
-   */
+  /** Inserts a new contact into the database. */
   async addContact(contact: ContactsModel): Promise<number | null> {
     const contact_data = contact.getCleanAddJson();
     const { data, error } = await this.supabase.from('contacts').insert(contact_data).select('id').single();
-
     if (error || !data) {
-      console.log('The contact could not be added!'); //TODO: errorHandling
+      console.log('The contact could not be added!'); 
       return null;
     }
     return data.id;
   }
 
-  /**
-   * Updates an existing contact in the database.
-   * @param id - The id of the contact to update
-   * @param contact - The updated contact data
-   */
+  /** Updates an existing contact in the database. */
   async updateContact(id: number, contact: ContactsModel): Promise<void> {
     const contact_data = contact.getCleanUpdateJson();
     const { error } = await this.supabase.from('contacts').update(contact_data).eq('id', id);
-    if (error) console.log('The contact could not be updated!'); //TODO: errorHandling
+    if (error) console.log('The contact could not be updated!'); 
   }
 
-  /**
-   * Deletes a contact from the database by id.
-   * @param id - The id of the contact to delete
-   */
+  /** Deletes a contact from the database by id. */
   async deleteContact(id: number): Promise<void> {
     const { error } = await this.supabase.from('contacts').delete().eq('id', id);
-    if (error) console.log('The contact could not be deleted'); //TODO: errorHandling
+    if (error) console.log('The contact could not be deleted');
   }
-
   //#endregion ------------------------------------------------------------------------------------
 
   //#region TASKS DATA ----------------------------------------------------------------------------
@@ -409,56 +337,40 @@ export class Supabase {
     };
     if (error || data === null) {
       console.log('tasks could not be loaded!');
-      return; // TODO: Errorhandling
+      return;
     }
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++)
       tasksModel.push(new TasksModel(data[i]));
-    }
     this.tasksList.set(tasksModel);
   }
 
-  /**
-  * Sets the currently selected task ID for displaying task details.
-  * @param {number | null} id - The ID of the task or null to clear selection
-  */
+  /** Sets the currently selected task ID for displaying task details. */
   getTaskDetails(id: number | null): void {
     this.taskDetailsId.set(id);
   }
 
-  /**
-  * Adds a new task to the database. Sends a cleaned task object and returns the generated task ID.
-  * @param {TasksModel} task - The task to be added
-  */
+  /** Adds a new task to the database. Sends a cleaned task object and returns the generated task ID. */
   async addTask(task: TasksModel): Promise<number | null> {
     const task_data = task.getCleanAddJson();
     const { data, error } = await this.supabase.from('tasks').insert(task_data).select('id').single();
-
     if (error || !data) {
-      console.log('The task could not be added!', error); // TODO: errorHandling
+      console.log('The task could not be added!', error);
       return null;
     }
     return data.id;
   }
 
-  /**
-  * Updates an existing task in the database.
-  * @param {TasksModel} task - The task with updated data
-  */
+  /** Updates an existing task in the database. */
   async updateTask(task: TasksModel): Promise<void> {
     const task_data = task.getCleanUpdateJson();
     const { error } = await this.supabase.from('tasks').update(task_data).eq('id', task.id);
-
-    if (error) console.log('The task could not be updated!'); // TODO: errorHandling
+    if (error) console.log('The task could not be updated!');
   }
 
-  /**
-  * Deletes a task from the database by its ID.
-  * @param {number} id - The ID of the task to delete
-  */
+  /** Deletes a task from the database by its ID. */
   async deleteTask(id: number): Promise<void> {
     const { error } = await this.supabase.from('tasks').delete().eq('id', id);
-
-    if (error) console.log('The task could not be deleted'); // TODO: errorHandling
+    if (error) console.log('The task could not be deleted');
   }
   //#endregion
 }

@@ -51,7 +51,6 @@ export class ContactsModel implements Contact {
    * Generates initials from the full name.
    * Uses first and last name initials.
    * Falls back to repeating the first letter if only one name is present.
-   * @returns Uppercase initials (e.g. "JD")
    */
   getInitials(): string {
     const parts = this.full_name.trim().split(/\s+/).filter(Boolean);
@@ -60,29 +59,20 @@ export class ContactsModel implements Contact {
     return `${first}${last || first}`.toUpperCase();
   }
 
-  /**
-   * Returns the contact name with "(You)" suffix if the email matches the current user.
-   * @param currentUserEmail - Email of the logged-in user
-   */
+  /** Returns the contact name with "(You)" suffix if the email matches the current user. */
   getDisplayName(currentUserEmail: string | null): string {
     if (!currentUserEmail) return this.full_name;
     if (currentUserEmail.toLowerCase() === this.email.toLowerCase())
-      return `${this.full_name} (You)`;
+      return `${this.full_name} (you)`;
     return this.full_name;
   }
 
-  /**
-   * Normalizes email values before comparing or saving them.
-   * @param email Email value
-   */
+  /** Normalizes email values before comparing or saving them.  */
   getNormalizeEmail(): string {
     return ContactsModel.normalizeEmail(this.email);
   }
 
-  /**
-   * Normalizes any email value before comparing or saving it.
-   * @param email Email value
-   */
+  /** Normalizes any email value before comparing or saving it. */
   static normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
   }

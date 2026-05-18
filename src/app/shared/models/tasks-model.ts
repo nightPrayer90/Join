@@ -7,45 +7,8 @@ import { CategoryModel } from './category-model';
  * This model acts as a wrapper around raw database data (e.g. from Supabase)
  * and provides helper methods for safe data handling and manipulation.
  *
- * ---------------------------------------------------------------------------
- * DATE HANDLING
- * ---------------------------------------------------------------------------
- * - Internally, the date is stored as an ISO string (`_date`)
- * - Externally, the date is exposed as a native JavaScript `Date` object
- *
- * Access patterns:
- * - `task.date`        → returns a `Date`
- * - `task.date = Date` → converts to ISO string automatically
- * - `task.dateISO`     → raw string for database usage
- *
- * ---------------------------------------------------------------------------
- * INITIALIZATION
- * ---------------------------------------------------------------------------
- * The constructor accepts partial task data (e.g. from database responses).
- * Missing values are automatically filled with default values.
- *
- * @example
- * const task = new TasksModel(dataFromDB);
- *
- * ---------------------------------------------------------------------------
- * USAGE EXAMPLES
- * ---------------------------------------------------------------------------
- * @example
- * // Access date
- * console.log(task.date);
- *
- * @example
- * // Set date
- * task.date = new Date();
- *
- * @example
- * // Get ISO string for database
- * console.log(task.dateISO);
- *
- * @example
- * // Count completed subtasks
- * console.log(task.getCompletedSubtasks());
  */
+
 export class TasksModel {
   id: number;
   title: string;
@@ -170,56 +133,52 @@ export class TasksModel {
   //#endregion ------------------------------------------------------------------------------------
 
   //#region DATE HELPERS --------------------------------------------------------------------------
-  /**
-   * Returns the task date as a native Date object.
-   * @returns {Date}
-   */
+  /** Returns the task date as a native Date object. */
   get date(): Date {
     return new Date(this._date);
   }
 
-  /**
-   * Sets the task date (automatically converts to ISO string).
-   * @param {Date} value
-   */
+  /** Sets the task date (automatically converts to ISO string). */
   set date(value: Date) {
     this._date = value.toISOString();
   }
 
-  /**
-   * Returns the raw ISO date string.
-   * @returns {string}
-   */
+  /** Returns the raw ISO date string. */
   get dateISO(): string {
     return this._date;
   }
 
-  /**
-   * Parses a date string in "dd/mm/yyyy", "dd.mm.yyyy", "dd-mm-yyyy"
-   * or "yyyy-mm-dd" format. Returns null on invalid input.
-   * @param value Raw date string
-   */
-  static parseDate(value: string): Date | null {
-    const normalized = value.trim();
+  /** Parses a date string in "dd/mm/yyyy", "dd.mm.yyyy", "dd-mm-yyyy" * or "yyyy-mm-dd" format. */
+  static parseDate(date: string): Date | null {
+    const normalized = date.trim();
     if (!normalized) return null;
 
     const ddmmyyyy = normalized.match(/^(\d{2})[./-](\d{2})[./-](\d{4})$/);
-    if (ddmmyyyy) {
+    if (ddmmyyyy) return this.getEuropeanDate(ddmmyyyy);
+
+    const yyyymmdd = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (yyyymmdd) return this.getISODate(yyyymmdd);
+    return null;
+  }
+
+  /** Returns a Date string from European Date */
+  static getEuropeanDate(ddmmyyyy:RegExpMatchArray): Date | null {
       const day = Number(ddmmyyyy[1]);
       const month = Number(ddmmyyyy[2]);
       const year = Number(ddmmyyyy[3]);
-      const date = new Date(year, month - 1, day);
-      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day)
-        return null;
-      date.setHours(0, 0, 0, 0);
-      return date;
-    }
+      return this.buildDate(year, month, day);
+  }
 
-    const yyyymmdd = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!yyyymmdd) return null;
-    const year = Number(yyyymmdd[1]);
-    const month = Number(yyyymmdd[2]);
-    const day = Number(yyyymmdd[3]);
+  /** Returns a Date string from ISO Date */
+  static getISODate(yyyymmdd:RegExpMatchArray): Date | null {
+      const year = Number(yyyymmdd[1]);
+      const month = Number(yyyymmdd[2]);
+      const day = Number(yyyymmdd[3]);
+      return this.buildDate(year, month, day);
+  }
+
+  /** Build a Date string - Returns null on invalid input. */
+  static buildDate(year: number, month: number, day: number): Date | null {
     const date = new Date(year, month - 1, day);
     if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day)
       return null;
@@ -227,10 +186,7 @@ export class TasksModel {
     return date;
   }
 
-  /**
-   * Returns true if the given date string is missing or before today.
-   * @param value Raw date string
-   */
+  /** Returns true if the given date string is missing or before today. */
   static isDueDateInvalid(dateValue: string): boolean {
     const date = TasksModel.parseDate(dateValue);
     if (!date) return true;
@@ -239,9 +195,7 @@ export class TasksModel {
     return date < today;
   }
 
-  /**
-   * Returns today's date as ISO string (yyyy-mm-dd) for date picker min attribute.
-   */
+  /** Returns today's date as ISO string (yyyy-mm-dd) for date picker min attribute. */
   static todayISO(): string {
     const t = new Date();
     const m = `${t.getMonth() + 1}`.padStart(2, '0');
@@ -249,10 +203,7 @@ export class TasksModel {
     return `${t.getFullYear()}-${m}-${d}`;
   }
 
-  /**
-   * Returns the date formatted as DD/MM/YYYY for display purposes.
-   * @returns {string}
-   */
+  /** Returns the date formatted as DD/MM/YYYY for display purposes. */
   get dateDisplay(): string {
     if (!this._date) return '';
     const d = new Date(this._date);

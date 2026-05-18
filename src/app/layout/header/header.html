@@ -4,7 +4,7 @@
     <span class="title">Kanban Project Management Tool</span>
 
     <div class="actions">
-      @if ( dbService.user() !== null) {
+      @if ( dbService.isLoggedIn() ) {
       <a routerLink="/help" routerLinkActive="is-active" class="help-btn" aria-label="Help">
         <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
           <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5" />
