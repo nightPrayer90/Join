@@ -2,6 +2,7 @@
 @use 'typography' as *;
 @use 'mixins' as *;
 @use 'breakpoints' as *;
+@use 'buttons' as *;
 
 :host {
   display: block;
@@ -74,7 +75,8 @@
 .dialog-right {
   flex: 1;
   height: 100%;
-  padding: clamp(20px, 2.2vw, 32px) clamp(28px, 3.3vw, 48px) clamp(20px, 2.2vw, 32px) clamp(20px, 2.2vw, 32px);
+  padding: clamp(20px, 2.2vw, 32px) clamp(28px, 3.3vw, 48px) clamp(20px, 2.2vw, 32px)
+    clamp(20px, 2.2vw, 32px);
   box-sizing: border-box;
   @include flex-column;
   position: relative;
@@ -207,6 +209,58 @@
   font-size: clamp(18px, 1.7vw, 24px);
   font-weight: $font-weight-regular;
   line-height: 1;
+}
+
+.user-delete-note {
+  position: absolute;
+  right: 3%;
+  top: 3%;
+  width: 94%;
+  height: 94%;
+  background: $color-text-muted;
+  border-radius: 10px;
+  border: solid $color-border-input;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  @include mobile {
+    padding: 16px;
+    right: 0%;
+    width: 100%;
+  }
+
+  &__content {
+    h2 {
+      margin-bottom: 20px;
+      @include mobile {
+        display: none;
+        margin-bottom: 0;
+      }
+    }
+    p {
+      font-size: 16px;
+    }
+  }
+
+  &__button {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 32px;
+    width: 100%;
+    @include mobile {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      min-width: 40%;
+    }
+  }
 }
 
 @keyframes dialogSlideIn {

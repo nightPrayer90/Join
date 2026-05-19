@@ -68,6 +68,11 @@ export class ContactsModel implements Contact {
     return this.full_name;
   }
 
+  isContactUser(currentUserEmail: string | undefined): boolean {
+    if (currentUserEmail?.toLowerCase() === this.email.toLowerCase()) return true;
+    return false;
+  }
+
   /** Normalizes email values before comparing or saving them.  */
   getNormalizeEmail(): string {
     return ContactsModel.normalizeEmail(this.email);

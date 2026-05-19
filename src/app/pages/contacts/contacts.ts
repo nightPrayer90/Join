@@ -35,6 +35,10 @@ export class Contacts {
     return this.groupContactsByLetter(sorted);
   });
 
+  ngOnInit() {
+    this.dbService.getContactDetails(null);
+  }
+
   /**
    * Returns a sorted clone of the contact list using German locale rules.
    */

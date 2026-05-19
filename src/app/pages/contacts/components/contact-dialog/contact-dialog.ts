@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Supabase } from '../../../../service/supabase';
 import { ContactsModel } from '../../../../shared/models/contacts-model';
@@ -33,11 +41,14 @@ export class ContactDialog {
   phoneError: string = '';
   submitError: string = '';
   isSaving: boolean = false;
+  isContactUser: boolean = false;
+  isShowDeleteNote: boolean = false;
 
   /** Reacts to mode/open input changes by preparing add or edit data. */
   ngOnChanges(changes: SimpleChanges): void {
     const modeChanged = !!changes['mode'];
     const openChanged = !!changes['isOpen'];
+    this.isShowDeleteNote = false;
     if (!modeChanged && !openChanged) return;
     if (!this.isOpen) return;
     if (this.mode === 'edit') {
@@ -45,6 +56,11 @@ export class ContactDialog {
       return;
     }
     this.prepareAddData();
+  }
+
+  /** Emits the close event so the parent component can hide the dialog. */
+  onClose(): void {
+    this.closeDialog.emit();
   }
 
   /** Clears name-related validation errors while the user is typing. */
@@ -97,25 +113,30 @@ export class ContactDialog {
 
   /** Persists the edited contact and emits the update event. */
   private async updateExistingContact(): Promise<void> {
-    await this.dbService.updateContact(this.editContactId!, new ContactsModel({
-      id: this.editContactId!,
-      full_name: this.fullName.trim(),
-      email: this.getEmailForSave(),
-      phone: this.phone.trim(),
-      avatar_color: this.avatarColor,
-    }));
+    await this.dbService.updateContact(
+      this.editContactId!,
+      new ContactsModel({
+        id: this.editContactId!,
+        full_name: this.fullName.trim(),
+        email: this.getEmailForSave(),
+        phone: this.phone.trim(),
+        avatar_color: this.avatarColor,
+      }),
+    );
     this.contactUpdated.emit();
   }
 
   /** Creates a new contact in the database and emits the created event with the new id. */
   private async createNewContact(): Promise<void> {
-    const createdId = await this.dbService.addContact(new ContactsModel({
-      full_name: this.fullName.trim(),
-      email: this.email.trim(),
-      phone: this.phone.trim(),
-      avatar_color: this.getAvatarColor(),
-      isUser: false,
-    }));
+    const createdId = await this.dbService.addContact(
+      new ContactsModel({
+        full_name: this.fullName.trim(),
+        email: this.email.trim(),
+        phone: this.phone.trim(),
+        avatar_color: this.getAvatarColor(),
+        isUser: false,
+      }),
+    );
     if (createdId !== null) {
       this.contactCreatedWithId.emit(createdId);
     }
@@ -130,13 +151,29 @@ export class ContactDialog {
 
   /** Sets a generic submit error message based on the current dialog mode. */
   private setSubmitError(): void {
-    this.submitError = this.mode === 'edit'
-      ? 'Contact could not be updated. Please try again.'
-      : 'Contact could not be created. Please try again.';
+    this.submitError =
+      this.mode === 'edit'
+        ? 'Contact could not be updated. Please try again.'
+        : 'Contact could not be created. Please try again.';
   }
 
   /** Deletes the currently edited contact after confirming the operation is allowed. */
   async onDelete(): Promise<void> {
+    if (!this.canDelete()) return;
+    if (this.isContactUser === false) {
+      this.onDeleteSelf();
+    } else {
+      this.isShowDeleteNote = true;
+    }
+  }
+
+  /** Close self delete dialog box. */
+  onBack(): void {
+    this.isShowDeleteNote = false;
+  }
+
+  /** Contact delete. */
+  async onDeleteSelf(): Promise<void> {
     if (!this.canDelete()) return;
     const deleteId = this.editContactId!;
     this.prepareDeleteOptimistic();
@@ -170,19 +207,6 @@ export class ContactDialog {
     } finally {
       this.isSaving = false;
     }
-  }
-
-  /** Emits the close event so the parent component can hide the dialog. */
-  onClose(): void {
-    this.closeDialog.emit();
-  }
-
-  /** Returns true if the currently edited contact belongs to the logged-in user. */
-  isOwnUserContact(): boolean {
-    if (this.mode !== 'edit') return false;
-    const userEmail = this.dbService.user()?.email;
-    if (!userEmail || !this.originalEmail) return false;
-    return ContactsModel.normalizeEmail(userEmail) === ContactsModel.normalizeEmail(this.originalEmail);
   }
 
   /** Returns true if the contact being edited represents a registered application user. */
@@ -227,7 +251,9 @@ export class ContactDialog {
     for (const token of tokens) {
       if (token.includes('.')) continue;
       if (!ContactDialog.NAME_TOKEN_REGEX.test(token)) {
-        return this.setFullNameError('Name may only contain letters and one hyphen within a name part.');
+        return this.setFullNameError(
+          'Name may only contain letters and one hyphen within a name part.',
+        );
       }
     }
     return true;
@@ -240,9 +266,10 @@ export class ContactDialog {
     const secondToken = tokens[1] ?? '';
     const errorMsg = 'Use abbreviations only as middle name, e.g. "Norman K. Pfalzer".';
     if (tokens.length < 3) return this.setFullNameError(errorMsg);
-    const isValid = dottedTokens.length === 1
-      && secondToken === dottedTokens[0]
-      && ContactDialog.DOTTED_TOKEN_REGEX.test(secondToken);
+    const isValid =
+      dottedTokens.length === 1 &&
+      secondToken === dottedTokens[0] &&
+      ContactDialog.DOTTED_TOKEN_REGEX.test(secondToken);
     return isValid ? true : this.setFullNameError(errorMsg);
   }
 
@@ -251,7 +278,10 @@ export class ContactDialog {
     const value = this.email.trim();
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!value) return this.setEmailError('Please enter your email.');
-    if (!emailRegex.test(value)) return this.setEmailError('Please enter a valid email address without unsupported special characters.');
+    if (!emailRegex.test(value))
+      return this.setEmailError(
+        'Please enter a valid email address without unsupported special characters.',
+      );
     return true;
   }
 
@@ -261,8 +291,10 @@ export class ContactDialog {
     const phoneRegex = /^\+?\d[\d\s-]*$/;
     const digitsOnly = value.replace(/\D/g, '');
     if (!value) return this.setPhoneError('Please enter your phone number.');
-    if (!phoneRegex.test(value)) return this.setPhoneError('Phone may contain digits, spaces, "-" and optional "+".');
-    if (digitsOnly.length < 7) return this.setPhoneError('Phone number must contain at least 7 digits.');
+    if (!phoneRegex.test(value))
+      return this.setPhoneError('Phone may contain digits, spaces, "-" and optional "+".');
+    if (digitsOnly.length < 7)
+      return this.setPhoneError('Phone number must contain at least 7 digits.');
     return true;
   }
 
@@ -325,6 +357,7 @@ export class ContactDialog {
     }
     this.hydrateContactFields(contact);
     this.hydrateContactErrors();
+    console.log('isUser? ' + this.isContactUser);
   }
 
   /** Copies the contact's values into the local form fields. */
@@ -337,6 +370,7 @@ export class ContactDialog {
     this.phone = contact.phone;
     this.avatarColor = contact.avatar_color || '#d1d1d1';
     this.avatarInitials = contact.getInitials();
+    this.isContactUser = contact.isContactUser(this.dbService.user()?.email);
   }
 
   /** Clears all validation and submit error messages when entering edit mode. */
