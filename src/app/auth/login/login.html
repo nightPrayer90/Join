@@ -78,10 +78,6 @@
             </button>
             <button type="button" class="btn-secondary" [disabled]="isLoading" (click)="onGuestLogin()">Guest Log in</button>
           </div>
-
-          <p class="auth-hint">
-            {{ isLoggedIn() ? 'You are currently logged in.' : 'You are currently using Join as a guest.' }}
-          </p>
         </form>
       </article>
     </main>

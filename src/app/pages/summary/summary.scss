@@ -91,7 +91,7 @@ section {
       transition: transform 0.1s ease;
 
       @include mobile {
-        padding: clamp(8px, 5dvw, 32px);
+        padding: clamp(8px, 3dvw, 32px);
         border-radius: 20px;
       }
 
