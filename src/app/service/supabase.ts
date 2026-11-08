@@ -9,8 +9,8 @@ import { Tasks } from '../shared/interface/tasks-interface';
   providedIn: 'root',
 })
 export class Supabase {
-  supabaseUrl: string = 'https://guvsrmtryoljhhdpanat.supabase.co';
-  supabaseKey: string = 'sb_publishable_pqmeYWYGduxCvtNhzM5HoA_oP6YdAqj';
+  supabaseUrl: string = 'https://abwztojnprhvjitewgti.supabase.co';
+  supabaseKey: string = 'sb_publishable_ReAqdG7nqxbhHENvR6Yj_g_KFLJcylI';
   supabase = createClient(this.supabaseUrl, this.supabaseKey);
   channelInsert: RealtimeChannel | undefined;
   channelUpdate: RealtimeChannel | undefined;
